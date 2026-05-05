@@ -84,13 +84,13 @@ jobs:
           channel: "stable"
           flutter-version-file: pubspec.yaml
           architecture: x64
-      - name: Decode and install certificate
-        env:
-          STORE_FILE: ${{ secrets.ANDROID_KEYSTORE }}
-          PROPERTY_FILE: ${{ secrets.ANDROID_KEY_PROPERTIES }}
-        run: |
-            echo "$STORE_FILE" | base64 --decode > android/keystore.jks
-            echo "$PROPERTY_FILE" > android/key.properties
+#      - name: Decode and install certificate
+#        env:
+#          STORE_FILE: ${{ secrets.ANDROID_KEYSTORE }}
+#          PROPERTY_FILE: ${{ secrets.ANDROID_KEY_PROPERTIES }}
+#        run: |
+#            echo "$STORE_FILE" | base64 --decode > android/keystore.jks
+#            echo "$PROPERTY_FILE" > android/key.properties
       - uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
