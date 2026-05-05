@@ -74,16 +74,16 @@ jobs:
         with:
           name: ios_build
           path: result/
-  Build_Android:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v5
-      - run: rm -rf /opt/hostedtoolcache
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
-          flutter-version-file: pubspec.yaml
-          architecture: x64
+#  Build_Android:
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - uses: actions/checkout@v5
+#      - run: rm -rf /opt/hostedtoolcache
+#      - uses: subosito/flutter-action@v2
+#        with:
+#          channel: "stable"
+#          flutter-version-file: pubspec.yaml
+#          architecture: x64
 #      - name: Decode and install certificate
 #        env:
 #          STORE_FILE: ${{ secrets.ANDROID_KEYSTORE }}
@@ -91,18 +91,18 @@ jobs:
 #        run: |
 #            echo "$STORE_FILE" | base64 --decode > android/keystore.jks
 #            echo "$PROPERTY_FILE" > android/key.properties
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-      - name: Check rust-toolchain.toml
-        run: rustup show
-      - run: flutter pub get
-      - run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: apks
-          path: build/app/outputs/apk/release
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: 'oracle'
+#          java-version: '17'
+#      - name: Check rust-toolchain.toml
+#        run: rustup show
+#      - run: flutter pub get
+#      - run: flutter build apk --release
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: apks
+#          path: build/app/outputs/apk/release
   Build_Windows:
     runs-on: windows-latest
     steps:
@@ -178,7 +178,7 @@ jobs:
 
   Release:
     runs-on: ubuntu-22.04
-    needs: [Build_MacOS, Build_IOS, Build_Android, Build_Windows, Build_Linux, Build_Linux_ARM64]
+    needs: [Build_MacOS, Build_IOS, Build_Windows, Build_Linux, Build_Linux_ARM64]
     if: github.event_name == 'release'  # 仅在 push 事件时执行
     steps:
       - uses: actions/download-artifact@v4
