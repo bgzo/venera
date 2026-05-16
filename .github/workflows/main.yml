@@ -189,10 +189,6 @@ jobs:
         with:
           name: ios_build
           path: outputs
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: apks
-#          path: outputs
       - uses: actions/download-artifact@v4
         with:
           name: windows_build
@@ -215,7 +211,6 @@ jobs:
           files: |
             outputs/*.ipa
             outputs/*.dmg
-#            outputs/*.apk
             outputs/*.zip
             outputs/*.exe
             outputs/*.deb
