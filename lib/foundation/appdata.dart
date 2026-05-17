@@ -265,6 +265,12 @@ class Settings with ChangeNotifier {
     'showChapterCommentsAtEnd':
         false, // show chapter comments at end of chapter
     'autoFavoriteCover': true, // auto favorite cover when adding favorite
+    // === Anime4K 超分相关配置 ===
+    'enableAnime4K': false, // 是否启用 Anime4K 超分
+    'anime4KScaleFactor': 2.0, // 放大倍数 1.0-4.0
+    'anime4KPushStrength': 0.31, // 线条细化强度 0.0-1.0
+    'anime4KPushGradStrength': 1.0, // 梯度精炼强度 0.0-1.0
+    'enableAnime4KForNetwork': false, // 网络图片是否也超分
   };
 
   operator [](String key) {

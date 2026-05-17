@@ -29,6 +29,7 @@ part 'local_favorites.dart';
 part 'app.dart';
 part 'about.dart';
 part 'network.dart';
+part 'anime4k.dart';
 part 'debug.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -54,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
     "Local Favorites",
     "APP",
     "Network",
+    "超分",
     "About",
     "Debug",
   ];
@@ -65,6 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Icons.collections_bookmark_rounded,
     Icons.apps,
     Icons.public,
+    Icons.auto_awesome,
     Icons.info,
     Icons.bug_report,
   ];
@@ -243,8 +246,9 @@ class _SettingsPageState extends State<SettingsPage> {
       3 => const LocalFavoritesSettings(),
       4 => const AppSettings(),
       5 => const NetworkSettings(),
-      6 => const AboutSettings(),
-      7 => const DebugPage(),
+      6 => const Anime4KSettings(),
+      7 => const AboutSettings(),
+      8 => const DebugPage(),
       _ => throw UnimplementedError(),
     };
   }
@@ -268,8 +272,9 @@ class _SettingsDetailPage extends StatelessWidget {
       3 => const LocalFavoritesSettings(),
       4 => const AppSettings(),
       5 => const NetworkSettings(),
-      6 => const AboutSettings(),
-      7 => const DebugPage(),
+      6 => const Anime4KSettings(),
+      7 => const AboutSettings(),
+      8 => const DebugPage(),
       _ => throw UnimplementedError(),
     };
   }
