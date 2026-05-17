@@ -744,12 +744,7 @@ class _ReaderScaffoldState extends State<_ReaderScaffold> {
 
   /// Build export filename: {ComicName}_EP{Chapter}_P{Page}.{ext}
   String _exportFilename(int page, String ext) {
-    var raw =
-        "${context.reader.widget.name}_EP${context.reader.chapterDisplayName}_P$page$ext";
-    return sanitizeFileName(
-      raw,
-      maxLength: maxSanitizedFileNameLength + ext.length + 30,
-    );
+    return "${sanitizeFileName(context.reader.widget.name, maxLength: maxSanitizedFileNameLength)}_EP${context.reader.chapterDisplayName}_P$page$ext";
   }
 
   void saveCurrentImage() async {
