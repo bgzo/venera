@@ -142,7 +142,7 @@ extension DirectoryExtension on Directory {
 /// this leaves ~175 bytes for the title. At 3 bytes per CJK character, that's
 /// ~58 pure CJK chars. 80 chars works for mixed CJK/ASCII titles in practice.
 /// See also: [comicDirectoryMaxLength] in local.dart which uses the same value.
-const maxSanitizedFileNameLength = 80;
+const maxSanitizedFileNameLength = 40;
 
 /// Sanitize the file name. Remove invalid characters and trim the file name.
 String sanitizeFileName(String fileName, {String? dir, int? maxLength}) {
