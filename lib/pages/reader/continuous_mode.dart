@@ -561,6 +561,56 @@ class _ContinuousModeState extends State<_ContinuousMode>
     }
     return imageKey;
   }
+
+  @override
+  _Anime4KPageStatus getAnime4KPageStatus() {
+    if (reader.images == null || reader.images!.isEmpty) {
+      return const _Anime4KPageStatus(
+        totalImages: 0,
+        processedImages: 0,
+        processingImages: 0,
+      );
+    }
+
+    final currentKey = reader.images![reader.page - 1];
+    int processed = 0;
+    int processing = 0;
+    for (final imageState in imageStates) {
+      final state = imageState as _ComicImageState;
+      if (state.readerImageKey != currentKey) {
+        continue;
+      }
+      if (state.hasAnime4KResult) {
+        processed++;
+      } else if (state.isAnime4KProcessing) {
+        processing++;
+      }
+    }
+
+    return _Anime4KPageStatus(
+      totalImages: 1,
+      processedImages: processed > 0 ? 1 : 0,
+      processingImages: processing > 0 ? 1 : 0,
+    );
+  }
+
+  @override
+  void refreshVisibleImages() {
+    for (final imageState in imageStates) {
+      if (imageState.mounted) {
+        (imageState as _ComicImageState).setState(() {});
+      }
+    }
+  }
+
+  @override
+  void releaseAnime4KResults() {
+    for (final imageState in imageStates) {
+      if (imageState.mounted) {
+        (imageState as _ComicImageState).releaseAnime4KResult();
+      }
+    }
+  }
 }
 
 ImageProvider _createImageProviderFromKey(
