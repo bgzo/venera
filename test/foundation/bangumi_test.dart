@@ -1,0 +1,164 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:venera/foundation/bangumi.dart';
+import 'package:venera/foundation/history.dart';
+import 'package:venera/network/bangumi.dart';
+
+void main() {
+  group('seriesStatusFromInfobox', () {
+    test('completed when an end date exists', () {
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '开始', 'value': '2001-07-12'},
+          {'key': '结束', 'value': '2010-06-12'},
+        ]),
+        BangumiSeriesStatus.completed,
+      );
+    });
+
+    test('ongoing when only a start date exists', () {
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '连载开始', 'value': '2020-04-28'},
+          {'key': '册数', 'value': '112卷既刊'},
+        ]),
+        BangumiSeriesStatus.ongoing,
+      );
+    });
+
+    test('follows the explicit serialization status field', () {
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '连载状态', 'value': '已完结'},
+        ]),
+        BangumiSeriesStatus.completed,
+      );
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '連載狀態', 'value': '連載中'},
+        ]),
+        BangumiSeriesStatus.ongoing,
+      );
+    });
+
+    test('ongoing when volumes are marked as still publishing', () {
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '册数', 'value': '112卷既刊'},
+        ]),
+        BangumiSeriesStatus.ongoing,
+      );
+    });
+
+    test('unknown without start or end metadata', () {
+      expect(
+        seriesStatusFromInfobox([
+          {'key': '册数', 'value': '24'},
+        ]),
+        BangumiSeriesStatus.unknown,
+      );
+      expect(seriesStatusFromInfobox(null), BangumiSeriesStatus.unknown);
+    });
+  });
+
+  group('nextAutoType', () {
+    test('wish becomes reading once there is progress', () {
+      expect(
+        nextAutoType(BangumiCollectionType.wish, progress: 0, totalEps: 10),
+        BangumiCollectionType.wish,
+      );
+      expect(
+        nextAutoType(BangumiCollectionType.wish, progress: 1, totalEps: 10),
+        BangumiCollectionType.doing,
+      );
+    });
+
+    test('reading becomes completed at the last chapter', () {
+      expect(
+        nextAutoType(BangumiCollectionType.doing, progress: 10, totalEps: 10),
+        BangumiCollectionType.done,
+      );
+      expect(
+        nextAutoType(BangumiCollectionType.doing, progress: 9, totalEps: 10),
+        BangumiCollectionType.doing,
+      );
+    });
+
+    test('unknown total never auto-completes', () {
+      expect(
+        nextAutoType(BangumiCollectionType.doing, progress: 100, totalEps: 0),
+        BangumiCollectionType.doing,
+      );
+    });
+
+    test('on hold and dropped are never changed automatically', () {
+      for (final type in [
+        BangumiCollectionType.onHold,
+        BangumiCollectionType.dropped,
+      ]) {
+        expect(nextAutoType(type, progress: 10, totalEps: 10), type);
+      }
+    });
+  });
+
+  group('historyProgress', () {
+    History history({int ep = 0, int? group, List<String> read = const []}) {
+      return History.fromMap({
+        'type': 0,
+        'time': 0,
+        'title': 'title',
+        'subtitle': '',
+        'cover': '',
+        'ep': ep,
+        'page': 1,
+        'id': '1',
+        'readEpisode': read,
+        'max_page': 1,
+        'chapter_group': group,
+      });
+    }
+
+    test('uses the chapter index for flat chapter lists', () {
+      expect(historyProgress(history(ep: 12, read: ['1', '2'])), 12);
+    });
+
+    test('counts distinct chapters for grouped chapter lists', () {
+      expect(
+        historyProgress(history(ep: 2, group: 1, read: ['1-1', '1-2'])),
+        2,
+      );
+    });
+  });
+
+  group('JSON parsing', () {
+    test('subject metadata and infobox', () {
+      final subject = BangumiSubject.fromJson({
+        'id': 34373,
+        'name': 'NARUTO -ナルト-',
+        'name_cn': '火影忍者',
+        'platform': '漫画',
+        'eps': 700,
+        'volumes': 72,
+        'series': true,
+        'date': '2000-03-03',
+        'infobox': [
+          {'key': '结束', 'value': '2014-11-10'},
+        ],
+      });
+      expect(subject.id, 34373);
+      expect(subject.displayName, '火影忍者');
+      expect(subject.eps, 700);
+      expect(subject.volumes, 72);
+      expect(subject.series, isTrue);
+      expect(subject.seriesStatus, BangumiSeriesStatus.completed);
+    });
+
+    test('user collection', () {
+      final collection = BangumiUserCollection.fromJson({
+        'type': 3,
+        'ep_status': 12,
+      });
+      expect(collection.type, BangumiCollectionType.doing);
+      expect(collection.epStatus, 12);
+    });
+  });
+}

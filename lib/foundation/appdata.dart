@@ -230,6 +230,8 @@ class Settings with ChangeNotifier {
     'searchSources': null,
     'showFavoriteStatusOnTile': true,
     'showHistoryStatusOnTile': false,
+    'bangumiAutoSync': true,
+    'showBangumiStatusOnTile': true,
     'historyRetentionDays': 0, // 0 means disabled; 7-182 days
     'blockedWords': [],
     'blockedCommentWords': [],

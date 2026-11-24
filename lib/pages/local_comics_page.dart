@@ -7,6 +7,7 @@ import 'package:venera/foundation/local.dart';
 import 'package:venera/pages/local_reader.dart';
 import 'package:venera/foundation/log.dart';
 import 'package:venera/pages/comic_details_page/comic_page.dart';
+import 'package:venera/pages/bangumi_page.dart';
 import 'package:venera/pages/local_comics/export_dialog.dart';
 import 'package:venera/pages/local_comics/chapter_export.dart';
 import 'package:venera/pages/local_comics/import_dialog.dart';
@@ -163,6 +164,14 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
                   sourceKey: selectedComics.keys.first.sourceKey,
                 ),
               );
+            },
+          ),
+        if (selectedComics.length == 1)
+          MenuEntry(
+            icon: Icons.sync_alt,
+            text: 'Bangumi'.tl,
+            onClick: () {
+              showBangumiDialog(selectedComics.keys.first);
             },
           ),
         if (selectedComics.isNotEmpty)
@@ -400,6 +409,11 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
                   onClick: () {
                     openComicFolder(c as LocalComic);
                   },
+                ),
+                MenuEntry(
+                  icon: Icons.sync_alt,
+                  text: 'Bangumi'.tl,
+                  onClick: () => showBangumiDialog(c),
                 ),
                 MenuEntry(
                   icon: Icons.delete,

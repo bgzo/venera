@@ -629,6 +629,14 @@ class _LocalFavoritesPageState extends State<_LocalFavoritesPage> {
                     ),
                   if (selectedComics.length == 1)
                     MenuEntry(
+                      icon: Icons.sync_alt,
+                      text: 'Bangumi'.tl,
+                      onClick: () {
+                        showBangumiDialog(selectedComics.keys.first);
+                      },
+                    ),
+                  if (selectedComics.length == 1)
+                    MenuEntry(
                       icon: Icons.chrome_reader_mode_outlined,
                       text: "Read".tl,
                       onClick: () {
@@ -757,6 +765,11 @@ class _LocalFavoritesPageState extends State<_LocalFavoritesPage> {
                     downloadComic(c as FavoriteItem);
                     context.showMessage(message: "Download started".tl);
                   },
+                ),
+                MenuEntry(
+                  icon: Icons.sync_alt,
+                  text: 'Bangumi'.tl,
+                  onClick: () => showBangumiDialog(c),
                 ),
                 if (appdata.settings["onClickFavorite"] == "viewDetail")
                   MenuEntry(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:venera/components/components.dart';
 import 'package:venera/foundation/app.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
 import 'package:venera/foundation/comic_type.dart';
 import 'package:venera/foundation/history.dart';
@@ -28,12 +29,14 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   void initState() {
     HistoryManager().addListener(onUpdate);
+    BangumiManager().addListener(onUpdate);
     super.initState();
   }
 
   @override
   void dispose() {
     HistoryManager().removeListener(onUpdate);
+    BangumiManager().removeListener(onUpdate);
     super.dispose();
   }
 
