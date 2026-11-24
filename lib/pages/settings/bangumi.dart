@@ -165,6 +165,18 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                 'Long press a comic and choose Bangumi to link it.'.tl,
                 style: context.textTheme.bodySmall,
               ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.link),
+                title: Text('Linked comics'.tl),
+                subtitle: Text(
+                  'View and edit the comics linked to Bangumi.'.tl,
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  showPopUpWidget(context, const LinkedComicsPage());
+                },
+              ),
               const Divider(height: 32),
               _SwitchSetting(
                 title: 'Auto sync reading progress'.tl,

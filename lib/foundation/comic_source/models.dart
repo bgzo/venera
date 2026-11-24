@@ -256,6 +256,19 @@ class ComicDetails with HistoryMixin {
 
   ComicType get comicType => ComicType(sourceKey.hashCode);
 
+  /// A lightweight [Comic] view for UI that only needs id/title/source.
+  Comic toComic() => Comic(
+    title,
+    cover,
+    comicId,
+    subTitle,
+    plainTags,
+    description ?? '',
+    sourceKey,
+    maxPage,
+    null,
+  );
+
   /// Convert tags map to plain list
   List<String> get plainTags {
     var res = <String>[];

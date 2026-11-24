@@ -273,6 +273,14 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
         tooltip: "Invert Selection".tl,
         onPressed: invertSelection,
       ),
+      if (selectedComics.length == 1)
+        IconButton(
+          icon: const Icon(Icons.sync_alt),
+          tooltip: 'Bangumi'.tl,
+          onPressed: () {
+            showBangumiDialog(selectedComics.keys.first);
+          },
+        ),
       buildMultiSelectMenu(),
     ];
 

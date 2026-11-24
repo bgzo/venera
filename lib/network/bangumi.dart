@@ -160,6 +160,7 @@ class BangumiSubject {
     required this.volumes,
     required this.series,
     required this.date,
+    required this.cover,
     required this.seriesStatus,
   });
 
@@ -178,6 +179,10 @@ class BangumiSubject {
   final bool series;
 
   final String date;
+
+  /// Cover image URL, preferring the grid-sized variant.
+  final String cover;
+
   final BangumiSeriesStatus seriesStatus;
 
   String get displayName => nameCn.isNotEmpty ? nameCn : name;
@@ -192,6 +197,7 @@ class BangumiSubject {
       volumes: (json['volumes'] as num?)?.toInt() ?? 0,
       series: json['series'] == true,
       date: json['date']?.toString() ?? '',
+      cover: _coverFromImages(json['images']),
       seriesStatus: seriesStatusFromInfobox(json['infobox']),
     );
   }
@@ -349,6 +355,19 @@ Map<String, dynamic> _asMap(dynamic data) {
     return Map<String, dynamic>.from(data);
   }
   throw BangumiException('Unexpected response from Bangumi');
+}
+
+String _coverFromImages(dynamic images) {
+  if (images is! Map) {
+    return '';
+  }
+  for (final key in const ['grid', 'small', 'common', 'medium', 'large']) {
+    final value = images[key];
+    if (value is String && value.isNotEmpty) {
+      return value;
+    }
+  }
+  return '';
 }
 
 String _errorMessage(DioException e) {

@@ -11,6 +11,7 @@ import 'package:venera/sync/app/sync_v2_service.dart';
 import 'package:venera/components/rich_comment_content.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
 import 'package:venera/foundation/comic_type.dart';
 import 'package:venera/foundation/consts.dart';
@@ -23,6 +24,8 @@ import 'package:venera/foundation/read_later.dart';
 import 'package:venera/foundation/res.dart';
 import 'package:venera/network/download.dart';
 import 'package:venera/network/cache.dart';
+import 'package:venera/network/bangumi.dart';
+import 'package:venera/pages/bangumi_page.dart';
 import 'package:venera/pages/favorites/favorites_page.dart';
 import 'package:venera/pages/page_jump.dart';
 import 'package:venera/pages/reader/reader.dart';
@@ -134,6 +137,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
   void initState() {
     scrollController.addListener(onScroll);
     ReadLaterManager().addListener(update);
+    BangumiManager().addListener(update);
     super.initState();
   }
 
@@ -141,6 +145,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
   void dispose() {
     scrollController.removeListener(onScroll);
     ReadLaterManager().removeListener(update);
+    BangumiManager().removeListener(update);
     super.dispose();
   }
 
@@ -371,6 +376,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
   Widget buildActions() {
     bool isMobile = context.width < changePoint;
     bool hasHistory = history != null && (history!.ep > 1 || history!.page > 1);
+    final bangumiLink = BangumiManager().linkOf(comic.id, comic.sourceKey);
     return SliverLazyToBoxAdapter(
       child: Column(
         children: [
@@ -442,6 +448,14 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                   }
                 },
                 iconColor: context.useTextColor(Colors.indigo),
+              ),
+              _ActionButton(
+                icon: const Icon(Icons.sync_alt),
+                activeIcon: const Icon(Icons.sync),
+                isActive: bangumiLink != null,
+                text: bangumiLink?.collectionType.labelKey.tl ?? 'Bangumi'.tl,
+                onPressed: () => showBangumiDialog(comic.toComic()),
+                iconColor: context.useTextColor(Colors.brown),
               ),
               if (comicSource.commentsLoader != null)
                 _ActionButton(
@@ -531,6 +545,46 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                 ],
               ),
             ).toAlign(Alignment.centerLeft),
+          if (bangumiLink != null)
+            InkWell(
+              onTap: () => showBangumiDialog(comic.toComic()),
+              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(AppRadius.xxl),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sync_alt,
+                      color: context.useTextColor(Colors.brown),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        [
+                          'Bangumi',
+                          bangumiLink.displayName,
+                          bangumiLink.collectionType.labelKey.tl,
+                          if (bangumiLink.seriesStatus ==
+                              BangumiSeriesStatus.completed)
+                            'Bangumi: finished'.tl,
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 20),
+                  ],
+                ),
+              ),
+            ),
           const Divider(),
         ],
       ).paddingTop(16),

@@ -140,6 +140,7 @@ void main() {
         'volumes': 72,
         'series': true,
         'date': '2000-03-03',
+        'images': {'grid': 'https://lain.bgm.tv/grid.jpg'},
         'infobox': [
           {'key': '结束', 'value': '2014-11-10'},
         ],
@@ -149,6 +150,7 @@ void main() {
       expect(subject.eps, 700);
       expect(subject.volumes, 72);
       expect(subject.series, isTrue);
+      expect(subject.cover, 'https://lain.bgm.tv/grid.jpg');
       expect(subject.seriesStatus, BangumiSeriesStatus.completed);
     });
 

@@ -589,7 +589,10 @@
     "Bangumi: unknown": "未知",
     "Bangumi token is invalid or expired": "Bangumi Access Token 无效或已过期",
     "Too many requests. Please try again later.": "请求过于频繁，请稍后再试。",
-    "Long press a comic and choose Bangumi to link it.": "长按漫画，选择 Bangumi 进行关联。"
+    "Long press a comic and choose Bangumi to link it.": "长按漫画，选择 Bangumi 进行关联。",
+    "Linked comics": "已关联漫画",
+    "No linked comics": "还没有关联漫画",
+    "View and edit the comics linked to Bangumi.": "查看并编辑已关联到 Bangumi 的漫画。"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1181,6 +1184,9 @@
     "Bangumi: unknown": "未知",
     "Bangumi token is invalid or expired": "Bangumi Access Token 無效或已過期",
     "Too many requests. Please try again later.": "請求過於頻繁，請稍後再試。",
-    "Long press a comic and choose Bangumi to link it.": "長按漫畫，選擇 Bangumi 進行關聯。"
+    "Long press a comic and choose Bangumi to link it.": "長按漫畫，選擇 Bangumi 進行關聯。",
+    "Linked comics": "已關聯漫畫",
+    "No linked comics": "還沒有關聯漫畫",
+    "View and edit the comics linked to Bangumi.": "檢視並編輯已關聯到 Bangumi 的漫畫。"
   }
 }

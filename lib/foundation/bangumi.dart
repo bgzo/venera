@@ -177,6 +177,15 @@ class BangumiManager with ChangeNotifier {
     return _links[_key(comicId, sourceKey)];
   }
 
+  List<BangumiLink> allLinks() {
+    if (!isInitialized) {
+      return const [];
+    }
+    final links = _links.values.toList()
+      ..sort((a, b) => a.displayName.compareTo(b.displayName));
+    return links;
+  }
+
   /// Number of chapters marked as read in the local history.
   int localProgress(String comicId, String sourceKey) {
     final history = HistoryManager().find(comicId, _comicType(sourceKey));

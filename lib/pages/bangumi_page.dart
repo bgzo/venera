@@ -5,6 +5,7 @@ import 'package:venera/components/components.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
+import 'package:venera/foundation/image_provider/cached_image.dart';
 import 'package:venera/network/bangumi.dart';
 import 'package:venera/pages/settings/settings_page.dart';
 import 'package:venera/utils/translations.dart';
@@ -14,6 +15,78 @@ Future<void> showBangumiDialog(Comic comic) {
     context: App.rootContext,
     builder: (_) => _BangumiDialog(comic: comic),
   );
+}
+
+class LinkedComicsPage extends StatefulWidget {
+  const LinkedComicsPage({super.key});
+
+  @override
+  State<LinkedComicsPage> createState() => _LinkedComicsPageState();
+}
+
+class _LinkedComicsPageState extends State<LinkedComicsPage> {
+  final _manager = BangumiManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _manager.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _manager.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final links = _manager.allLinks();
+    return PopUpWidgetScaffold(
+      title: 'Linked comics'.tl,
+      body: links.isEmpty
+          ? Center(child: Text('No linked comics'.tl))
+          : ListView.builder(
+              itemCount: links.length,
+              itemBuilder: (context, index) {
+                final link = links[index];
+                return ListTile(
+                  leading: const Icon(Icons.menu_book_outlined),
+                  title: Text(link.displayName),
+                  subtitle: Text(
+                    [
+                      link.collectionType.labelKey.tl,
+                      link.seriesStatus.labelKey.tl,
+                    ].join(' · '),
+                  ),
+                  trailing: Text(
+                    '${link.epStatus}'
+                    '${link.totalEps > 0 ? ' / ${link.totalEps}' : ''}',
+                  ),
+                  onTap: () => showBangumiDialog(
+                    Comic(
+                      link.displayName,
+                      '',
+                      link.comicId,
+                      null,
+                      null,
+                      '',
+                      link.sourceKey,
+                      null,
+                      null,
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
 }
 
 class _BangumiDialog extends StatefulWidget {
@@ -264,24 +337,27 @@ class _BangumiDialogState extends State<_BangumiDialog> {
   Widget build(BuildContext context) {
     return ContentDialog(
       title: 'Bangumi'.tl,
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_loading || _searching) const LinearProgressIndicator(),
-          if (_error != null) ...[
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            const SizedBox(height: 8),
+      content: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_loading || _searching) const LinearProgressIndicator(),
+            if (_error != null) ...[
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (!_hasToken)
+              _buildSetup(context)
+            else if (_link == null)
+              _buildSearch(context)
+            else
+              ..._buildSelected(context),
           ],
-          if (!_hasToken)
-            _buildSetup(context)
-          else if (_link == null)
-            _buildSearch(context)
-          else
-            ..._buildSelected(context),
-        ],
+        ),
       ),
       actions: _buildActions(context),
     );
@@ -327,10 +403,9 @@ class _BangumiDialogState extends State<_BangumiDialog> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
-              leading: Icon(
-                _subject?.id == subject.id
-                    ? Icons.check_circle
-                    : Icons.menu_book_outlined,
+              leading: _SubjectCover(
+                cover: subject.cover,
+                selected: _subject?.id == subject.id,
               ),
               title: Text(subject.displayName),
               subtitle: Text(
@@ -441,5 +516,57 @@ class _BangumiDialogState extends State<_BangumiDialog> {
               : Text('Save and sync'.tl),
         ),
     ];
+  }
+}
+
+class _SubjectCover extends StatelessWidget {
+  const _SubjectCover({required this.cover, required this.selected});
+
+  final String cover;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 40,
+      height: 56,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: cover.isEmpty
+                    ? const Icon(Icons.menu_book_outlined, size: 20)
+                    : AnimatedImage(
+                        image: CachedImageProvider(cover),
+                        fit: BoxFit.cover,
+                        width: 40,
+                        height: 56,
+                      ),
+              ),
+            ),
+          ),
+          if (selected)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  size: 10,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

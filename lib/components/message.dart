@@ -278,6 +278,7 @@ class ContentDialog extends StatelessWidget {
     required this.content,
     this.dismissible = true,
     this.actions = const [],
+    this.insetPadding,
   });
 
   final String? title;
@@ -287,6 +288,11 @@ class ContentDialog extends StatelessWidget {
   final List<Widget> actions;
 
   final bool dismissible;
+
+  /// Overrides the default dialog margins. The default keeps a small gap on
+  /// narrow screens and a comfortable gap on desktop, with vertical margins so
+  /// tall dialogs never touch the window edges.
+  final EdgeInsets? insetPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -319,9 +325,11 @@ class ContentDialog extends StatelessWidget {
     );
     // Shape, elevation, shadow and surface color all come from dialogTheme.
     return Dialog(
-      insetPadding: context.width < 400
-          ? const EdgeInsets.symmetric(horizontal: 4)
-          : const EdgeInsets.symmetric(horizontal: 16),
+      insetPadding:
+          insetPadding ??
+          (context.width < 400
+              ? const EdgeInsets.symmetric(horizontal: 4, vertical: 12)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 24)),
       child: AnimatedSize(
         duration: const Duration(milliseconds: 200),
         alignment: Alignment.topCenter,
