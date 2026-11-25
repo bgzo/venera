@@ -728,7 +728,7 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
               itemBuilder: (context, index) {
                 final link = links[index];
                 return ListTile(
-                  leading: const Icon(Icons.menu_book_outlined),
+                  leading: const BangumiIcon(size: 24),
                   title: Text(link.displayName),
                   subtitle: Text(
                     [

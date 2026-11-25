@@ -560,7 +560,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                 ),
                 child: Row(
                   children: [
-                    const BangumiIcon(size: 20),
+                    const BangumiIcon(size: 24),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
