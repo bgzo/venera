@@ -102,6 +102,45 @@ class _BangumiSettingsState extends State<BangumiSettings> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList.list(
             children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: context.colorScheme.outlineVariant),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Usage'.tl, style: ts.s16),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Token is stored locally and is not synced via WebDAV.'
+                          .tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Token expiry is managed by Bangumi; check it on the '
+                              'token page.'
+                          .tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Long press a comic and choose Bangumi to link it.'.tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _tokenController,
@@ -165,45 +204,6 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                 },
                 icon: const Icon(Icons.open_in_new),
                 label: Text('Get or manage Access Token'.tl),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: context.colorScheme.outlineVariant),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Usage'.tl, style: ts.s16),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Token is stored locally and is not synced via WebDAV.'
-                          .tl,
-                      style: ts.s12.copyWith(
-                        color: context.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Token expiry is managed by Bangumi; check it on the '
-                              'token page.'
-                          .tl,
-                      style: ts.s12.copyWith(
-                        color: context.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Long press a comic and choose Bangumi to link it.'.tl,
-                      style: ts.s12.copyWith(
-                        color: context.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
