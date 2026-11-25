@@ -720,7 +720,7 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
     final links = _manager.allLinks();
     return PopUpWidgetScaffold(
       title: 'Linked comics'.tl,
-      titleIcon: const BangumiIcon(),
+      titleIcon: const BangumiIcon(monochrome: true),
       body: links.isEmpty
           ? Center(child: Text('No linked comics'.tl))
           : ListView.builder(
@@ -728,7 +728,7 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
               itemBuilder: (context, index) {
                 final link = links[index];
                 return ListTile(
-                  leading: const BangumiIcon(size: 24),
+                  leading: const BangumiIcon(size: 24, monochrome: true),
                   title: Text(link.displayName),
                   subtitle: Text(
                     [

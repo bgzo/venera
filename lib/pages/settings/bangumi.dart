@@ -92,7 +92,7 @@ class _BangumiSettingsState extends State<BangumiSettings> {
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const BangumiIcon(size: 22),
+              const BangumiIcon(size: 22, monochrome: true),
               const SizedBox(width: 8),
               Text('Bangumi'.tl),
             ],
