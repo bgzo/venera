@@ -210,7 +210,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: Row(
           children: [
-            Icon(icons[id]),
+            id == bangumiSettingsPageIndex
+                ? const BangumiIcon()
+                : Icon(icons[id]),
             const SizedBox(width: 16),
             Text(name, style: context.textTheme.bodyLarge),
             const Spacer(),

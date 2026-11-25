@@ -197,6 +197,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
   Widget build(BuildContext context) {
     return PopUpWidgetScaffold(
       title: 'Bangumi'.tl,
+      titleIcon: const BangumiIcon(),
       body: Column(
         children: [
           Padding(
@@ -476,6 +477,7 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
 
     return PopUpWidgetScaffold(
       title: 'Bangumi'.tl,
+      titleIcon: const BangumiIcon(),
       tailing: link != null && !_isNewLink
           ? [
               IconButton(
@@ -718,6 +720,7 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
     final links = _manager.allLinks();
     return PopUpWidgetScaffold(
       title: 'Linked comics'.tl,
+      titleIcon: const BangumiIcon(),
       body: links.isEmpty
           ? Center(child: Text('No linked comics'.tl))
           : ListView.builder(

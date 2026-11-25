@@ -41,6 +41,7 @@ import 'package:window_manager/window_manager.dart';
 
 part 'image.dart';
 part 'appbar.dart';
+part 'bangumi_icon.dart';
 part 'button.dart';
 part 'consts.dart';
 part 'flyout.dart';

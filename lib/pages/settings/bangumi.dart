@@ -88,7 +88,16 @@ class _BangumiSettingsState extends State<BangumiSettings> {
   Widget build(BuildContext context) {
     return SmoothCustomScrollView(
       slivers: [
-        SliverAppbar(title: Text('Bangumi'.tl)),
+        SliverAppbar(
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const BangumiIcon(size: 22),
+              const SizedBox(width: 8),
+              Text('Bangumi'.tl),
+            ],
+          ),
+        ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList.list(

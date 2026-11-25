@@ -450,12 +450,11 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                 iconColor: context.useTextColor(Colors.indigo),
               ),
               _ActionButton(
-                icon: const Icon(Icons.sync_alt),
-                activeIcon: const Icon(Icons.sync),
+                icon: const BangumiIcon(size: 20),
+                activeIcon: const BangumiIcon(size: 20),
                 isActive: bangumiLink != null,
                 text: bangumiLink?.collectionType.labelKey.tl ?? 'Bangumi'.tl,
                 onPressed: () => showBangumiDialog(comic.toComic()),
-                iconColor: context.useTextColor(Colors.brown),
               ),
               if (comicSource.commentsLoader != null)
                 _ActionButton(
@@ -561,10 +560,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.sync_alt,
-                      color: context.useTextColor(Colors.brown),
-                    ),
+                    const BangumiIcon(size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
