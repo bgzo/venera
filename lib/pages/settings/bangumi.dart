@@ -194,6 +194,12 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                     'Update Bangumi ep_status when a new chapter is read.'.tl,
               ),
               _SwitchSetting(
+                title: 'Sync notification'.tl,
+                settingKey: 'bangumiSyncReminder',
+                subtitle:
+                    'Show a notification after an automatic progress sync.'.tl,
+              ),
+              _SwitchSetting(
                 title: 'Show Bangumi status on comic tile'.tl,
                 settingKey: 'showBangumiStatusOnTile',
                 onChanged: App.forceRebuild,

@@ -231,6 +231,7 @@ class Settings with ChangeNotifier {
     'showFavoriteStatusOnTile': true,
     'showHistoryStatusOnTile': false,
     'bangumiAutoSync': true,
+    'bangumiSyncReminder': false,
     'showBangumiStatusOnTile': true,
     'historyRetentionDays': 0, // 0 means disabled; 7-182 days
     'blockedWords': [],

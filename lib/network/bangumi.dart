@@ -368,20 +368,26 @@ class BangumiClient {
     }
   }
 
+  /// Updates a collection. Null fields are omitted: Bangumi creates one
+  /// timeline entry per sent field, even when the value did not change.
   Future<void> updateCollection(
     int subjectId, {
-    required BangumiCollectionType type,
+    BangumiCollectionType? type,
     int? epStatus,
     int? volStatus,
   }) async {
+    final data = <String, dynamic>{
+      if (type != null) 'type': type.value,
+      if (epStatus != null) 'ep_status': epStatus,
+      if (volStatus != null) 'vol_status': volStatus,
+    };
+    if (data.isEmpty) {
+      return;
+    }
     try {
       await _dio.post(
         '/v0/users/-/collections/$subjectId',
-        data: {
-          'type': type.value,
-          if (epStatus != null) 'ep_status': epStatus,
-          if (volStatus != null) 'vol_status': volStatus,
-        },
+        data: data,
         options: _postOptions(),
       );
     } on DioException catch (e) {

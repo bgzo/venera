@@ -594,7 +594,10 @@
     "No linked comics": "还没有关联漫画",
     "View and edit the comics linked to Bangumi.": "查看并编辑已关联到 Bangumi 的漫画。",
     "Load more": "加载更多",
-    "Change subject": "更换条目"
+    "Change subject": "更换条目",
+    "Sync notification": "同步提醒",
+    "Show a notification after an automatic progress sync.": "自动同步阅读进度后显示成功提醒",
+    "Bangumi progress synced: @name · @ep": "Bangumi 进度已同步：@name · 第 @ep 话"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1191,6 +1194,9 @@
     "No linked comics": "還沒有關聯漫畫",
     "View and edit the comics linked to Bangumi.": "檢視並編輯已關聯到 Bangumi 的漫畫。",
     "Load more": "載入更多",
-    "Change subject": "更換條目"
+    "Change subject": "更換條目",
+    "Sync notification": "同步提醒",
+    "Show a notification after an automatic progress sync.": "自動同步閱讀進度後顯示成功提醒",
+    "Bangumi progress synced: @name · @ep": "Bangumi 進度已同步：@name · 第 @ep 話"
   }
 }
