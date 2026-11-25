@@ -128,6 +128,10 @@ class BangumiManager with ChangeNotifier {
   /// the optional sync reminder.
   void Function(BangumiLink link, int ep)? onAutoSynced;
 
+  /// Called when an automatic progress sync fails, so failures do not stay
+  /// silent.
+  void Function(BangumiLink link, int ep, Object error)? onAutoSyncFailed;
+
   Future<void> init() async {
     if (isInitialized) {
       return;
@@ -315,6 +319,7 @@ class BangumiManager with ChangeNotifier {
       return;
     }
     _syncing.add(key);
+    BangumiLink? saved;
     try {
       // Only send the collection type when it changes: Bangumi would create a
       // timeline entry for it on every chapter otherwise.
@@ -331,13 +336,13 @@ class BangumiManager with ChangeNotifier {
           latest.epStatus >= ep) {
         return;
       }
-      final saved = link.copyWith(
+      final updated = link.copyWith(
         collectionType: type,
         epStatus: ep,
         updatedAt: DateTime.now(),
       );
-      await _save(saved);
-      onAutoSynced?.call(saved, ep);
+      await _save(updated);
+      saved = updated;
     } catch (e, s) {
       // Reading must not be interrupted by a failed background sync. The next
       // chapter retries because epStatus is only updated on success.
@@ -346,8 +351,12 @@ class BangumiManager with ChangeNotifier {
         'Failed to sync progress for ${link.comicId}: $e',
         s,
       );
+      onAutoSyncFailed?.call(link, ep, e);
     } finally {
       _syncing.remove(key);
+    }
+    if (saved != null) {
+      onAutoSynced?.call(saved, ep);
     }
   }
 

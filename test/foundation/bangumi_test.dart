@@ -180,6 +180,23 @@ void main() {
       expect(lastPage.hasMore, isFalse);
     });
 
+    test('user avatar', () {
+      final user = BangumiUser.fromJson({
+        'username': 'bool',
+        'nickname': 'Bool',
+        'avatar': {
+          'large': 'https://lain.bgm.tv/l.jpg',
+          'medium': 'https://lain.bgm.tv/m.jpg',
+          'small': 'https://lain.bgm.tv/s.jpg',
+        },
+      });
+      expect(user.displayName, 'Bool');
+      expect(user.avatar, 'https://lain.bgm.tv/l.jpg');
+
+      final empty = BangumiUser.fromJson({'username': 'bool'});
+      expect(empty.avatar, '');
+    });
+
     test('user collection', () {
       final collection = BangumiUserCollection.fromJson({
         'type': 3,

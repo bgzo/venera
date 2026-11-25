@@ -135,10 +135,15 @@ BangumiCollectionType nextAutoType(
 }
 
 class BangumiUser {
-  const BangumiUser({required this.username, required this.nickname});
+  const BangumiUser({
+    required this.username,
+    required this.nickname,
+    required this.avatar,
+  });
 
   final String username;
   final String nickname;
+  final String avatar;
 
   String get displayName => nickname.isNotEmpty ? nickname : username;
 
@@ -146,6 +151,11 @@ class BangumiUser {
     return BangumiUser(
       username: json['username']?.toString() ?? '',
       nickname: json['nickname']?.toString() ?? '',
+      avatar: _firstImageUrl(json['avatar'], const [
+        'large',
+        'medium',
+        'small',
+      ]),
     );
   }
 }
@@ -201,14 +211,14 @@ class BangumiSubject {
       volumes: (json['volumes'] as num?)?.toInt() ?? 0,
       series: json['series'] == true,
       date: json['date']?.toString() ?? '',
-      cover: _coverFromImages(json['images'], const [
+      cover: _firstImageUrl(json['images'], const [
         'grid',
         'small',
         'common',
         'medium',
         'large',
       ]),
-      coverLarge: _coverFromImages(json['images'], const [
+      coverLarge: _firstImageUrl(json['images'], const [
         'common',
         'large',
         'medium',
@@ -406,7 +416,7 @@ Map<String, dynamic> _asMap(dynamic data) {
   throw BangumiException('Unexpected response from Bangumi');
 }
 
-String _coverFromImages(dynamic images, List<String> keys) {
+String _firstImageUrl(dynamic images, List<String> keys) {
   if (images is! Map) {
     return '';
   }

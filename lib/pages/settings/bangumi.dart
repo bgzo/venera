@@ -139,13 +139,14 @@ class _BangumiSettingsState extends State<BangumiSettings> {
               if (_account != null)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.check_circle, color: Colors.green),
+                  leading: _BangumiAvatar(url: _account!.avatar),
                   title: Text(
                     'Connected as @name'.tlParams({
                       'name': _account!.displayName,
                     }),
                   ),
                   subtitle: Text('@${_account!.username}'),
+                  trailing: const Icon(Icons.check_circle, color: Colors.green),
                 ),
               if (_error != null)
                 Padding(
@@ -163,16 +164,46 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                   launchUrlString('https://next.bgm.tv/demo/access-token');
                 },
                 icon: const Icon(Icons.open_in_new),
-                label: Text('Get Access Token'.tl),
+                label: Text('Get or manage Access Token'.tl),
               ),
-              Text(
-                'Token is stored locally and is not synced via WebDAV.'.tl,
-                style: context.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Long press a comic and choose Bangumi to link it.'.tl,
-                style: context.textTheme.bodySmall,
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: context.colorScheme.outlineVariant),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Usage'.tl, style: ts.s16),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Token is stored locally and is not synced via WebDAV.'
+                          .tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Token expiry is managed by Bangumi; check it on the '
+                              'token page.'
+                          .tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Long press a comic and choose Bangumi to link it.'.tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -209,6 +240,34 @@ class _BangumiSettingsState extends State<BangumiSettings> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BangumiAvatar extends StatelessWidget {
+  const _BangumiAvatar({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 40.0;
+    return Container(
+      width: size,
+      height: size,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: context.colorScheme.surfaceContainerHighest,
+      ),
+      child: url.isEmpty
+          ? const Icon(Icons.person, size: size * 0.6)
+          : AnimatedImage(
+              image: CachedImageProvider(url),
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+            ),
     );
   }
 }

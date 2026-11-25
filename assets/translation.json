@@ -597,7 +597,11 @@
     "Change subject": "更换条目",
     "Sync notification": "同步提醒",
     "Show a notification after an automatic progress sync.": "自动同步阅读进度后显示成功提醒",
-    "Bangumi progress synced: @name · @ep": "Bangumi 进度已同步：@name · 第 @ep 话"
+    "Bangumi progress synced: @name · @ep": "Bangumi 进度已同步：@name · 第 @ep 话",
+    "Usage": "使用说明",
+    "Get or manage Access Token": "获取或管理 Access Token",
+    "Token expiry is managed by Bangumi; check it on the token page.": "Token 有效期由 Bangumi 管理，可在 Token 页面查看。",
+    "Bangumi sync failed: @name · @reason": "Bangumi 同步失败：@name · @reason"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1197,6 +1201,10 @@
     "Change subject": "更換條目",
     "Sync notification": "同步提醒",
     "Show a notification after an automatic progress sync.": "自動同步閱讀進度後顯示成功提醒",
-    "Bangumi progress synced: @name · @ep": "Bangumi 進度已同步：@name · 第 @ep 話"
+    "Bangumi progress synced: @name · @ep": "Bangumi 進度已同步：@name · 第 @ep 話",
+    "Usage": "使用說明",
+    "Get or manage Access Token": "取得或管理 Access Token",
+    "Token expiry is managed by Bangumi; check it on the token page.": "Token 有效期由 Bangumi 管理，可在 Token 頁面查看。",
+    "Bangumi sync failed: @name · @reason": "Bangumi 同步失敗：@name · @reason"
   }
 }

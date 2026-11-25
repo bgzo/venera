@@ -51,6 +51,19 @@ Future<void> init() async {
       }),
     );
   };
+  // Failures are always surfaced, even when the success reminder is off.
+  BangumiManager().onAutoSyncFailed = (link, ep, error) {
+    final context = App.rootNavigatorKey.currentContext;
+    if (context == null) {
+      return;
+    }
+    context.showMessage(
+      message: 'Bangumi sync failed: @name · @reason'.tlParams({
+        'name': link.displayName,
+        'reason': bangumiErrorText(error),
+      }),
+    );
+  };
   await SingleInstanceCookieJar.createInstance();
   try {
     var futures = [
