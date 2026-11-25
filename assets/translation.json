@@ -592,7 +592,9 @@
     "Long press a comic and choose Bangumi to link it.": "长按漫画，选择 Bangumi 进行关联。",
     "Linked comics": "已关联漫画",
     "No linked comics": "还没有关联漫画",
-    "View and edit the comics linked to Bangumi.": "查看并编辑已关联到 Bangumi 的漫画。"
+    "View and edit the comics linked to Bangumi.": "查看并编辑已关联到 Bangumi 的漫画。",
+    "Load more": "加载更多",
+    "Change subject": "更换条目"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1187,6 +1189,8 @@
     "Long press a comic and choose Bangumi to link it.": "長按漫畫，選擇 Bangumi 進行關聯。",
     "Linked comics": "已關聯漫畫",
     "No linked comics": "還沒有關聯漫畫",
-    "View and edit the comics linked to Bangumi.": "檢視並編輯已關聯到 Bangumi 的漫畫。"
+    "View and edit the comics linked to Bangumi.": "檢視並編輯已關聯到 Bangumi 的漫畫。",
+    "Load more": "載入更多",
+    "Change subject": "更換條目"
   }
 }

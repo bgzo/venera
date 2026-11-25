@@ -151,7 +151,33 @@ void main() {
       expect(subject.volumes, 72);
       expect(subject.series, isTrue);
       expect(subject.cover, 'https://lain.bgm.tv/grid.jpg');
+      expect(subject.coverLarge, 'https://lain.bgm.tv/grid.jpg');
       expect(subject.seriesStatus, BangumiSeriesStatus.completed);
+    });
+
+    test('search result pagination', () {
+      final result = BangumiSearchResult.fromJson({
+        'total': 3,
+        'limit': 2,
+        'offset': 0,
+        'data': [
+          {'id': 1, 'name': 'A'},
+          {'id': 2, 'name': 'B'},
+        ],
+      });
+      expect(result.items.length, 2);
+      expect(result.total, 3);
+      expect(result.hasMore, isTrue);
+
+      final lastPage = BangumiSearchResult.fromJson({
+        'total': 3,
+        'limit': 2,
+        'offset': 2,
+        'data': [
+          {'id': 3, 'name': 'C'},
+        ],
+      });
+      expect(lastPage.hasMore, isFalse);
     });
 
     test('user collection', () {

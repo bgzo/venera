@@ -161,6 +161,7 @@ class BangumiSubject {
     required this.series,
     required this.date,
     required this.cover,
+    required this.coverLarge,
     required this.seriesStatus,
   });
 
@@ -183,6 +184,9 @@ class BangumiSubject {
   /// Cover image URL, preferring the grid-sized variant.
   final String cover;
 
+  /// Larger cover image URL for detail pages.
+  final String coverLarge;
+
   final BangumiSeriesStatus seriesStatus;
 
   String get displayName => nameCn.isNotEmpty ? nameCn : name;
@@ -197,15 +201,60 @@ class BangumiSubject {
       volumes: (json['volumes'] as num?)?.toInt() ?? 0,
       series: json['series'] == true,
       date: json['date']?.toString() ?? '',
-      cover: _coverFromImages(json['images']),
+      cover: _coverFromImages(json['images'], const [
+        'grid',
+        'small',
+        'common',
+        'medium',
+        'large',
+      ]),
+      coverLarge: _coverFromImages(json['images'], const [
+        'common',
+        'large',
+        'medium',
+        'grid',
+        'small',
+      ]),
       seriesStatus: seriesStatusFromInfobox(json['infobox']),
+    );
+  }
+}
+
+class BangumiSearchResult {
+  const BangumiSearchResult({
+    required this.items,
+    required this.total,
+    required this.limit,
+    required this.offset,
+  });
+
+  final List<BangumiSubject> items;
+  final int total;
+  final int limit;
+  final int offset;
+
+  bool get hasMore =>
+      items.length >= limit && (total == 0 || offset + items.length < total);
+
+  factory BangumiSearchResult.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    final items = data is List
+        ? data
+              .whereType<Map>()
+              .map((e) => BangumiSubject.fromJson(Map<String, dynamic>.from(e)))
+              .toList()
+        : <BangumiSubject>[];
+    return BangumiSearchResult(
+      items: items,
+      total: (json['total'] as num?)?.toInt() ?? items.length,
+      limit: (json['limit'] as num?)?.toInt() ?? items.length,
+      offset: (json['offset'] as num?)?.toInt() ?? 0,
     );
   }
 }
 
 class BangumiUserCollection {
   const BangumiUserCollection({required this.type, required this.epStatus});
-
   final BangumiCollectionType type;
   final int epStatus;
 
@@ -268,14 +317,15 @@ class BangumiClient {
     }
   }
 
-  Future<List<BangumiSubject>> searchSubjects(
+  Future<BangumiSearchResult> searchSubjects(
     String keyword, {
-    int limit = 10,
+    int limit = 20,
+    int offset = 0,
   }) async {
     try {
       final res = await _dio.post(
         '/v0/search/subjects',
-        queryParameters: {'limit': limit},
+        queryParameters: {'limit': limit, 'offset': offset},
         data: {
           'keyword': keyword,
           'filter': {
@@ -284,14 +334,7 @@ class BangumiClient {
         },
         options: _postOptions(),
       );
-      final data = _asMap(res.data)['data'];
-      if (data is! List) {
-        return [];
-      }
-      return data
-          .whereType<Map>()
-          .map((e) => BangumiSubject.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return BangumiSearchResult.fromJson(_asMap(res.data));
     } on DioException catch (e) {
       throw BangumiException(_errorMessage(e));
     }
@@ -357,11 +400,11 @@ Map<String, dynamic> _asMap(dynamic data) {
   throw BangumiException('Unexpected response from Bangumi');
 }
 
-String _coverFromImages(dynamic images) {
+String _coverFromImages(dynamic images, List<String> keys) {
   if (images is! Map) {
     return '';
   }
-  for (final key in const ['grid', 'small', 'common', 'medium', 'large']) {
+  for (final key in keys) {
     final value = images[key];
     if (value is String && value.isNotEmpty) {
       return value;
