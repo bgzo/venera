@@ -138,6 +138,21 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                         color: context.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    TextButton.icon(
+                      onPressed: () {
+                        launchUrlString(
+                          'https://next.bgm.tv/demo/access-token',
+                        );
+                      },
+                      icon: const Icon(Icons.open_in_new, size: 18),
+                      label: Text('Get or manage Access Token'.tl),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -198,13 +213,6 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                   ),
                 ),
               const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: () {
-                  launchUrlString('https://next.bgm.tv/demo/access-token');
-                },
-                icon: const Icon(Icons.open_in_new),
-                label: Text('Get or manage Access Token'.tl),
-              ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.link),
