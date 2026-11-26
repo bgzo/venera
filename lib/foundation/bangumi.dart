@@ -207,6 +207,8 @@ class BangumiManager with ChangeNotifier {
     _syncing.clear();
     isInitialized = false;
     clientFactory = BangumiClient.new;
+    _client = null;
+    _clientToken = null;
     onAutoSynced = null;
     onAutoSyncFailed = null;
   }
@@ -220,6 +222,19 @@ class BangumiManager with ChangeNotifier {
   /// Whether the Bangumi feature is enabled and usable.
   bool get isEnabled =>
       appdata.settings['bangumiEnabled'] == true && token.isNotEmpty;
+
+  BangumiClient? _client;
+  String? _clientToken;
+
+  /// Reuses the HTTP client until the token changes.
+  BangumiClient get client {
+    final currentToken = token;
+    if (_client == null || _clientToken != currentToken) {
+      _client = clientFactory(currentToken);
+      _clientToken = currentToken;
+    }
+    return _client!;
+  }
 
   Future<void> setEnabled(bool value) async {
     if (appdata.settings['bangumiEnabled'] == value) {
@@ -287,9 +302,7 @@ class BangumiManager with ChangeNotifier {
         : type == BangumiCollectionType.done && subject.eps > 0
         ? max(epStatus, subject.eps)
         : epStatus;
-    await clientFactory(
-      token,
-    ).updateCollection(subject.id, type: type, epStatus: targetEp);
+    await client.updateCollection(subject.id, type: type, epStatus: targetEp);
     final link = BangumiLink(
       comicId: comicId,
       sourceKey: sourceKey,
@@ -318,9 +331,11 @@ class BangumiManager with ChangeNotifier {
         : type == BangumiCollectionType.done && link.totalEps > 0
         ? max(epStatus, link.totalEps)
         : epStatus;
-    await clientFactory(
-      token,
-    ).updateCollection(link.subjectId, type: type, epStatus: targetEp);
+    await client.updateCollection(
+      link.subjectId,
+      type: type,
+      epStatus: targetEp,
+    );
     final updated = link.copyWith(
       collectionType: type,
       epStatus: targetEp,
@@ -426,7 +441,7 @@ class BangumiManager with ChangeNotifier {
     try {
       // Only send the collection type when it changes: Bangumi would create a
       // timeline entry for it on every chapter otherwise.
-      await clientFactory(token).updateCollection(
+      await client.updateCollection(
         link.subjectId,
         type: type != link.collectionType ? type : null,
         epStatus: ep,

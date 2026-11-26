@@ -70,7 +70,7 @@ class _BangumiSettingsState extends State<BangumiSettings> {
       _error = null;
     });
     try {
-      final me = await BangumiClient(normalizedToken).getMe();
+      final me = await BangumiManager().client.getMe();
       if (!mounted) return;
       setState(() => _account = me);
       if (!silent) {

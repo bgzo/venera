@@ -148,9 +148,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       _scrollController.jumpTo(0);
     }
     try {
-      final result = await BangumiClient(
-        _manager.token,
-      ).searchSubjects(keyword, offset: 0);
+      final result = await _manager.client.searchSubjects(keyword, offset: 0);
       if (!mounted || requestId != _requestId) return;
       setState(() {
         _items = result.items;
@@ -180,9 +178,10 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       _error = null;
     });
     try {
-      final result = await BangumiClient(
-        _manager.token,
-      ).searchSubjects(keyword, offset: _items.length);
+      final result = await _manager.client.searchSubjects(
+        keyword,
+        offset: _items.length,
+      );
       if (!mounted || requestId != _requestId) return;
       setState(() {
         _items.addAll(result.items);
@@ -329,7 +328,7 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
     final link = _link!;
     setState(() => _loading = true);
     try {
-      final client = BangumiClient(_manager.token);
+      final client = _manager.client;
       final subject = await client.getSubject(link.subjectId);
       final refreshed = await _manager.refreshMetadata(link, subject);
       if (!mounted) return;
@@ -369,9 +368,7 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
   Future<void> _loadRemote(int subjectId) async {
     setState(() => _loading = true);
     try {
-      final remote = await BangumiClient(
-        _manager.token,
-      ).getCollection(subjectId);
+      final remote = await _manager.client.getCollection(subjectId);
       if (!mounted) return;
       setState(() {
         _remote = remote;
