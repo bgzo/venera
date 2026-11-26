@@ -406,6 +406,10 @@ class BangumiManager with ChangeNotifier {
     if (link == null) {
       return;
     }
+    if (link.totalEps == 0 && link.totalVolumes > 0) {
+      // Volume-only entries have no chapter progress to advance.
+      return;
+    }
     if (link.collectionType == BangumiCollectionType.onHold ||
         link.collectionType == BangumiCollectionType.dropped) {
       return;

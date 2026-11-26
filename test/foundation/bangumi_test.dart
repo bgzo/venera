@@ -295,6 +295,20 @@ void main() {
       seriesStatus: BangumiSeriesStatus.ongoing,
     );
 
+    const volumeSubject = BangumiSubject(
+      id: 4,
+      name: 'Volumes',
+      nameCn: '',
+      platform: '漫画',
+      eps: 0,
+      volumes: 5,
+      series: true,
+      date: '',
+      cover: '',
+      coverLarge: '',
+      seriesStatus: BangumiSeriesStatus.ongoing,
+    );
+
     setUp(() {
       manager.resetForTest();
       db = sqlite3.openInMemory();
@@ -497,6 +511,22 @@ void main() {
       expect(client.updates.last.type, isNull);
       expect(client.updates.last.epStatus, 10);
       expect(manager.linkOf('1', 'local')!.epStatus, 10);
+    });
+
+    test('skips automatic progress for volume-only entries', () async {
+      await manager.linkAndSync(
+        comicId: '1',
+        sourceKey: 'local',
+        subject: volumeSubject,
+        type: BangumiCollectionType.wish,
+        epStatus: 0,
+      );
+      client.updates.clear();
+
+      manager.autoSyncForTest(history(1));
+      await pumpEventQueue();
+
+      expect(client.updates, isEmpty);
     });
 
     test('picks up progress written during an in-flight sync', () async {
