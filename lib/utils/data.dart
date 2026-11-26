@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
 import 'package:venera/foundation/comic_type.dart';
 import 'package:venera/foundation/favorites.dart';
@@ -50,6 +51,7 @@ Future<File> exportAppData([bool sync = true]) async {
   _flushDb(FilePath.join(dataPath, "local_favorite.db"));
   _flushDb(FilePath.join(dataPath, "read_later.db"));
   _flushDb(FilePath.join(dataPath, "cookie.db"));
+  _flushDb(FilePath.join(dataPath, "bangumi.db"));
 
   var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   var cacheFilePath = FilePath.join(App.cachePath, '$time.venera');
@@ -57,30 +59,48 @@ Future<File> exportAppData([bool sync = true]) async {
   if (await cacheFile.exists()) {
     await cacheFile.delete();
   }
-  await Isolate.run(() {
-    var zipFile = ZipFile.open(cacheFilePath);
-    var historyFile = FilePath.join(dataPath, "history.db");
-    var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
-    var appdata = FilePath.join(
-      dataPath,
-      sync ? "syncdata.json" : "appdata.json",
-    );
-    var cookies = FilePath.join(dataPath, "cookie.db");
-    zipFile.addFile("history.db", historyFile);
-    zipFile.addFile("local_favorite.db", localFavoriteFile);
-    zipFile.addFile("appdata.json", appdata);
-    zipFile.addFile("cookie.db", cookies);
-    var readLaterFile = FilePath.join(dataPath, "read_later.db");
-    zipFile.addFile("read_later.db", readLaterFile);
-    for (var file in Directory(
-      FilePath.join(dataPath, "comic_source"),
-    ).listSync()) {
-      if (file is File) {
-        zipFile.addFile("comic_source/${file.name}", file.path);
+  // The token and the comic-to-subject links live outside appdata.json, so
+  // they need their own entries in the archive.
+  var bangumiFile = File(FilePath.join(App.cachePath, '$time.bangumi.json'));
+  await bangumiFile.writeAsString(
+    jsonEncode({
+      'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
+    }),
+  );
+  var bangumiTokenPath = bangumiFile.path;
+  try {
+    await Isolate.run(() {
+      var zipFile = ZipFile.open(cacheFilePath);
+      var historyFile = FilePath.join(dataPath, "history.db");
+      var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
+      var appdata = FilePath.join(
+        dataPath,
+        sync ? "syncdata.json" : "appdata.json",
+      );
+      var cookies = FilePath.join(dataPath, "cookie.db");
+      zipFile.addFile("history.db", historyFile);
+      zipFile.addFile("local_favorite.db", localFavoriteFile);
+      zipFile.addFile("appdata.json", appdata);
+      zipFile.addFile("cookie.db", cookies);
+      var readLaterFile = FilePath.join(dataPath, "read_later.db");
+      zipFile.addFile("read_later.db", readLaterFile);
+      var bangumiDb = FilePath.join(dataPath, "bangumi.db");
+      if (File(bangumiDb).existsSync()) {
+        zipFile.addFile("bangumi.db", bangumiDb);
       }
-    }
-    zipFile.close();
-  });
+      zipFile.addFile("bangumi.json", bangumiTokenPath);
+      for (var file in Directory(
+        FilePath.join(dataPath, "comic_source"),
+      ).listSync()) {
+        if (file is File) {
+          zipFile.addFile("comic_source/${file.name}", file.path);
+        }
+      }
+      zipFile.close();
+    });
+  } finally {
+    bangumiFile.deleteIgnoreError();
+  }
   return cacheFile;
 }
 
@@ -158,6 +178,35 @@ Future<void> importAppData(
       readLaterFile.renameSync(FilePath.join(App.dataPath, "read_later.db"));
       await ReadLaterManager().init();
     }
+    var bangumiDb = cacheDir.joinFile("bangumi.db");
+    if (await bangumiDb.exists()) {
+      BangumiManager().close();
+      var localFile = File(FilePath.join(App.dataPath, "bangumi.db"));
+      if (localFile.existsSync()) {
+        localFile.renameSync(FilePath.join(App.dataPath, "bangumi.db.bak"));
+        bakFiles.add(FilePath.join(App.dataPath, "bangumi.db.bak"));
+      }
+      _cleanWalFiles(FilePath.join(App.dataPath, "bangumi.db"));
+      bangumiDb.renameSync(FilePath.join(App.dataPath, "bangumi.db"));
+      await BangumiManager().init();
+    }
+    // Older backups and WebDAV sync never carry the token, so only a
+    // non-empty value is restored.
+    var bangumiFile = cacheDir.joinFile("bangumi.json");
+    if (await bangumiFile.exists()) {
+      try {
+        var content =
+            jsonDecode(await bangumiFile.readAsString())
+                as Map<String, dynamic>;
+        var token = (content['token'] as String?)?.trim() ?? '';
+        if (token.isNotEmpty) {
+          appdata.implicitData['bangumiToken'] = token;
+          await appdata.writeImplicitData();
+        }
+      } catch (e) {
+        Log.error("Import Data", "Failed to import the Bangumi token: $e");
+      }
+    }
     if (appdataContent != null) {
       if (isLocalRestore) {
         appdata.restoreFromBackup(appdataContent);
@@ -165,6 +214,7 @@ Future<void> importAppData(
         appdata.syncData(appdataContent);
       }
     }
+    await BangumiManager().reconcileEnabled();
     if (await cacheDir.joinFile("cookie.db").exists()) {
       SingleInstanceCookieJar.instance?.dispose();
       var localFile = File(FilePath.join(App.dataPath, "cookie.db"));
