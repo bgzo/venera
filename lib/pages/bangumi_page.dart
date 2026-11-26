@@ -51,7 +51,9 @@ Future<void> _showTokenSetup() {
             Text('Configure Bangumi Access Token in Settings > Bangumi'.tl),
             const SizedBox(height: 8),
             Text(
-              'Token is stored locally and is not synced via WebDAV.'.tl,
+              'Token is stored locally and is not uploaded by WebDAV sync. '
+                      'A manual App Data export includes it.'
+                  .tl,
               style: context.textTheme.bodySmall,
             ),
           ],

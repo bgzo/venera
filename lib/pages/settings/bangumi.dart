@@ -135,7 +135,8 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                     Text('Usage'.tl, style: ts.s16),
                     const SizedBox(height: 6),
                     Text(
-                      'Token is stored locally and is not synced via WebDAV.'
+                      'Token is stored locally and is not uploaded by WebDAV '
+                              'sync. A manual App Data export includes it.'
                           .tl,
                       style: ts.s12.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
@@ -143,8 +144,10 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Token expiry is managed by Bangumi; check it on the '
-                              'token page.'
+                      'Bangumi tokens last up to one year and the API exposes '
+                              'no expiry date. Progress synced while the token '
+                              'is invalid cannot be recovered, so maintain the '
+                              'token periodically.'
                           .tl,
                       style: ts.s12.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
@@ -162,6 +165,16 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                     const SizedBox(height: 4),
                     Text(
                       'Long press a comic and choose Bangumi to link it.'.tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Deleting a comic or clearing its history does not remove '
+                              'its Bangumi link. Clean unused links in Linked '
+                              'comics.'
+                          .tl,
                       style: ts.s12.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
                       ),
