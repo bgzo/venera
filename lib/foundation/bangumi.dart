@@ -411,10 +411,10 @@ class BangumiManager with ChangeNotifier {
       return;
     }
     final progress = historyProgress(history);
-    if (progress <= link.epStatus) {
+    final capped = link.totalEps > 0 ? min(progress, link.totalEps) : progress;
+    if (capped <= link.epStatus) {
       return;
     }
-    final capped = link.totalEps > 0 ? min(progress, link.totalEps) : progress;
     final next = nextAutoType(
       link.collectionType,
       progress: capped,
@@ -495,6 +495,22 @@ class BangumiManager with ChangeNotifier {
     }
     if (saved != null) {
       onAutoSynced?.call(saved, ep);
+      _resyncIfProgressAdvanced(link);
+    }
+  }
+
+  /// Picks up progress written while the previous request was in flight; those
+  /// history events were dropped by [_syncing].
+  void _resyncIfProgressAdvanced(BangumiLink link) {
+    if (!isEnabled || appdata.settings['bangumiAutoSync'] != true) {
+      return;
+    }
+    final history = HistoryManager().find(
+      link.comicId,
+      _comicType(link.sourceKey),
+    );
+    if (history != null) {
+      _autoSync(history);
     }
   }
 

@@ -499,6 +499,26 @@ void main() {
       expect(manager.linkOf('1', 'local')!.epStatus, 10);
     });
 
+    test('picks up progress written during an in-flight sync', () async {
+      HistoryManager().clearHistory();
+      HistoryManager().addHistory(history(1));
+      await link();
+      final blocker = Completer<void>();
+      client.blocker = blocker;
+      manager.autoSyncForTest(history(1));
+      expect(client.updates, hasLength(1));
+
+      HistoryManager().addHistory(history(2));
+      client.blocker = null;
+      blocker.complete();
+      await pumpEventQueue();
+
+      expect(client.updates, hasLength(2));
+      expect(client.updates.last.epStatus, 2);
+      expect(manager.linkOf('1', 'local')!.epStatus, 2);
+      HistoryManager().clearHistory();
+    });
+
     test('drops a stale write after the comic is relinked', () async {
       final first = await link();
       final blocker = Completer<void>();
