@@ -133,6 +133,15 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                     ),
                     const SizedBox(height: 4),
                     Text(
+                      'Automatic sync updates chapter progress only; volume '
+                              'progress is not synced.'
+                          .tl,
+                      style: ts.s12.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
                       'Long press a comic and choose Bangumi to link it.'.tl,
                       style: ts.s12.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
