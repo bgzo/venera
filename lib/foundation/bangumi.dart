@@ -11,6 +11,23 @@ import 'package:venera/foundation/sqlite_connection.dart';
 import 'package:venera/network/bangumi.dart';
 import 'package:venera/utils/translations.dart';
 
+const _linksTableSql = '''
+  CREATE TABLE IF NOT EXISTS bangumi_links (
+    comic_id TEXT NOT NULL,
+    source_key TEXT NOT NULL,
+    subject_id INTEGER NOT NULL,
+    subject_name TEXT NOT NULL,
+    subject_name_cn TEXT NOT NULL,
+    series_status INTEGER NOT NULL DEFAULT 0,
+    total_eps INTEGER NOT NULL DEFAULT 0,
+    total_volumes INTEGER NOT NULL DEFAULT 0,
+    collection_type INTEGER NOT NULL DEFAULT 1,
+    ep_status INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (comic_id, source_key)
+  );
+''';
+
 /// User-facing text for errors returned by [BangumiClient].
 String bangumiErrorText(Object error) {
   final text = error.toString();
@@ -155,27 +172,16 @@ class BangumiManager with ChangeNotifier {
   /// silent.
   void Function(BangumiLink link, int ep, Object error)? onAutoSyncFailed;
 
+  /// Test seam for the HTTP client.
+  @visibleForTesting
+  BangumiClient Function(String token) clientFactory = BangumiClient.new;
+
   Future<void> init() async {
     if (isInitialized) {
       return;
     }
     _db = openSqliteDatabase('${App.dataPath}/bangumi.db');
-    _db.execute('''
-      CREATE TABLE IF NOT EXISTS bangumi_links (
-        comic_id TEXT NOT NULL,
-        source_key TEXT NOT NULL,
-        subject_id INTEGER NOT NULL,
-        subject_name TEXT NOT NULL,
-        subject_name_cn TEXT NOT NULL,
-        series_status INTEGER NOT NULL DEFAULT 0,
-        total_eps INTEGER NOT NULL DEFAULT 0,
-        total_volumes INTEGER NOT NULL DEFAULT 0,
-        collection_type INTEGER NOT NULL DEFAULT 1,
-        ep_status INTEGER NOT NULL DEFAULT 0,
-        updated_at INTEGER NOT NULL,
-        PRIMARY KEY (comic_id, source_key)
-      );
-    ''');
+    _db.execute(_linksTableSql);
     for (final row in _db.select('SELECT * FROM bangumi_links;')) {
       final link = BangumiLink.fromRow(row);
       _links[_key(link.comicId, link.sourceKey)] = link;
@@ -184,6 +190,26 @@ class BangumiManager with ChangeNotifier {
     isInitialized = true;
     notifyListeners();
   }
+
+  @visibleForTesting
+  void initForTest(Database db) {
+    _db = db;
+    _db.execute(_linksTableSql);
+    isInitialized = true;
+  }
+
+  @visibleForTesting
+  void resetForTest() {
+    _links.clear();
+    _syncing.clear();
+    isInitialized = false;
+    clientFactory = BangumiClient.new;
+    onAutoSynced = null;
+    onAutoSyncFailed = null;
+  }
+
+  @visibleForTesting
+  void autoSyncForTest(History history) => _autoSync(history);
 
   String get token =>
       ((appdata.implicitData['bangumiToken'] as String?) ?? '').trim();
@@ -255,7 +281,7 @@ class BangumiManager with ChangeNotifier {
     final targetEp = type == BangumiCollectionType.done && subject.eps > 0
         ? max(epStatus, subject.eps)
         : epStatus;
-    await BangumiClient(
+    await clientFactory(
       token,
     ).updateCollection(subject.id, type: type, epStatus: targetEp);
     final link = BangumiLink(
@@ -283,7 +309,7 @@ class BangumiManager with ChangeNotifier {
     final targetEp = type == BangumiCollectionType.done && link.totalEps > 0
         ? max(epStatus, link.totalEps)
         : epStatus;
-    await BangumiClient(
+    await clientFactory(
       token,
     ).updateCollection(link.subjectId, type: type, epStatus: targetEp);
     final updated = link.copyWith(
@@ -338,15 +364,15 @@ class BangumiManager with ChangeNotifier {
     if (!isInitialized || _links.isEmpty) {
       return;
     }
-    if (!isEnabled || appdata.settings['bangumiAutoSync'] != true) {
-      return;
-    }
     for (final history in HistoryManager().cachedHistories.values.toList()) {
       _autoSync(history);
     }
   }
 
   void _autoSync(History history) {
+    if (!isEnabled || appdata.settings['bangumiAutoSync'] != true) {
+      return;
+    }
     final link = linkOf(history.id, history.sourceKey);
     if (link == null) {
       return;
@@ -382,7 +408,7 @@ class BangumiManager with ChangeNotifier {
     try {
       // Only send the collection type when it changes: Bangumi would create a
       // timeline entry for it on every chapter otherwise.
-      await BangumiClient(token).updateCollection(
+      await clientFactory(token).updateCollection(
         link.subjectId,
         type: type != link.collectionType ? type : null,
         epStatus: ep,

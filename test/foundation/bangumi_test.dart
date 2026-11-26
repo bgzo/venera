@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart';
+import 'package:venera/foundation/appdata.dart';
 import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/history.dart';
 import 'package:venera/network/bangumi.dart';
@@ -254,4 +258,183 @@ void main() {
       expect(collection.epStatus, 12);
     });
   });
+
+  group('BangumiManager auto sync', () {
+    final manager = BangumiManager();
+    late Database db;
+    late _FakeBangumiClient client;
+
+    const subject = BangumiSubject(
+      id: 2,
+      name: 'Name',
+      nameCn: '',
+      platform: '漫画',
+      eps: 10,
+      volumes: 0,
+      series: true,
+      date: '',
+      cover: '',
+      coverLarge: '',
+      seriesStatus: BangumiSeriesStatus.ongoing,
+    );
+
+    setUp(() {
+      manager.resetForTest();
+      db = sqlite3.openInMemory();
+      manager.initForTest(db);
+      client = _FakeBangumiClient();
+      manager.clientFactory = (_) => client;
+      appdata.settings['bangumiEnabled'] = true;
+      appdata.settings['bangumiAutoSync'] = true;
+      appdata.implicitData['bangumiToken'] = 'token';
+    });
+
+    tearDown(() {
+      manager.resetForTest();
+      db.dispose();
+      appdata.settings['bangumiEnabled'] = false;
+      appdata.settings['bangumiAutoSync'] = true;
+      appdata.implicitData.remove('bangumiToken');
+    });
+
+    Future<BangumiLink> link({
+      BangumiCollectionType type = BangumiCollectionType.wish,
+      int epStatus = 0,
+    }) async {
+      final saved = await manager.linkAndSync(
+        comicId: '1',
+        sourceKey: 'local',
+        subject: subject,
+        type: type,
+        epStatus: epStatus,
+      );
+      client.updates.clear();
+      return saved;
+    }
+
+    History history(int ep) {
+      return History.fromMap({
+        'type': 0,
+        'time': 0,
+        'title': 'title',
+        'subtitle': '',
+        'cover': '',
+        'ep': ep,
+        'page': 1,
+        'id': '1',
+        'readEpisode': <String>[],
+        'max_page': 1,
+        'chapter_group': null,
+      });
+    }
+
+    test('does nothing while the master switch is off', () async {
+      await link();
+      appdata.settings['bangumiEnabled'] = false;
+      manager.autoSyncForTest(history(1));
+      await Future<void>.delayed(Duration.zero);
+      expect(client.updates, isEmpty);
+    });
+
+    test('does nothing while automatic sync is off', () async {
+      await link();
+      appdata.settings['bangumiAutoSync'] = false;
+      manager.autoSyncForTest(history(1));
+      await Future<void>.delayed(Duration.zero);
+      expect(client.updates, isEmpty);
+    });
+
+    test('moves wish to doing and sends the new chapter', () async {
+      await link();
+      manager.autoSyncForTest(history(1));
+      await Future<void>.delayed(Duration.zero);
+      expect(client.updates, hasLength(1));
+      expect(client.updates.single.type, BangumiCollectionType.doing);
+      expect(client.updates.single.epStatus, 1);
+    });
+
+    test('completes at the last chapter and caps progress', () async {
+      await link(type: BangumiCollectionType.doing, epStatus: 9);
+      manager.autoSyncForTest(history(12));
+      await Future<void>.delayed(Duration.zero);
+      expect(client.updates.single.type, BangumiCollectionType.done);
+      expect(client.updates.single.epStatus, 10);
+    });
+
+    test('skips on hold and dropped links', () async {
+      for (final type in [
+        BangumiCollectionType.onHold,
+        BangumiCollectionType.dropped,
+      ]) {
+        await link(type: type);
+        manager.autoSyncForTest(history(1));
+        await Future<void>.delayed(Duration.zero);
+        expect(client.updates, isEmpty);
+        await manager.removeLink(manager.linkOf('1', 'local')!);
+      }
+    });
+
+    test('ignores a second trigger while one sync is in flight', () async {
+      await link();
+      final blocker = Completer<void>();
+      client.blocker = blocker;
+      manager.autoSyncForTest(history(1));
+      manager.autoSyncForTest(history(1));
+      expect(client.updates, hasLength(1));
+      blocker.complete();
+      await Future<void>.delayed(Duration.zero);
+    });
+
+    test(
+      'does not overwrite a manual change made during the request',
+      () async {
+        final saved = await link();
+        final blocker = Completer<void>();
+        client.blocker = blocker;
+        manager.autoSyncForTest(history(1));
+        expect(client.updates, hasLength(1));
+
+        client.blocker = null;
+        await manager.updateLink(
+          saved,
+          type: BangumiCollectionType.onHold,
+          epStatus: 0,
+        );
+        blocker.complete();
+        await Future<void>.delayed(Duration.zero);
+
+        final latest = manager.linkOf('1', 'local')!;
+        expect(latest.collectionType, BangumiCollectionType.onHold);
+        expect(latest.epStatus, 0);
+      },
+    );
+  });
+}
+
+class _FakeBangumiClient extends BangumiClient {
+  _FakeBangumiClient() : super('token');
+
+  final updates = <_FakeUpdate>[];
+  Completer<void>? blocker;
+
+  @override
+  Future<void> updateCollection(
+    int subjectId, {
+    BangumiCollectionType? type,
+    int? epStatus,
+    int? volStatus,
+  }) async {
+    updates.add(_FakeUpdate(type, epStatus));
+    final waitFor = blocker;
+    if (waitFor != null) {
+      await waitFor.future;
+    }
+  }
+}
+
+class _FakeUpdate {
+  const _FakeUpdate(this.type, this.epStatus);
+
+  final BangumiCollectionType? type;
+  final int? epStatus;
 }
