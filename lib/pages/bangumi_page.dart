@@ -101,6 +101,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
   var _hasMore = false;
   String? _error;
   var _requestId = 0;
+  var _loadMoreFailed = false;
 
   @override
   void initState() {
@@ -122,7 +123,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
   }
 
   void _onScroll() {
-    if (!_hasMore || _loading) {
+    if (!_hasMore || _loading || _loadMoreFailed) {
       return;
     }
     final position = _scrollController.position;
@@ -143,6 +144,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       _error = null;
       _items = [];
       _hasMore = false;
+      _loadMoreFailed = false;
     });
     if (_scrollController.hasClients) {
       _scrollController.jumpTo(0);
@@ -176,6 +178,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
     setState(() {
       _loading = true;
       _error = null;
+      _loadMoreFailed = false;
     });
     try {
       final result = await _manager.client.searchSubjects(
@@ -189,6 +192,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       });
     } catch (e) {
       if (!mounted || requestId != _requestId) return;
+      setState(() => _loadMoreFailed = true);
       context.showMessage(message: bangumiErrorText(e));
     } finally {
       if (mounted && requestId == _requestId) {
