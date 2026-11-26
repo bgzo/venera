@@ -110,6 +110,12 @@ extension StyledText on TextStyle {
 
   TextStyle get overline => copyWith(decoration: TextDecoration.overline);
 
+  TextStyle get s12 => copyWith(fontSize: 12);
+
+  TextStyle get s14 => copyWith(fontSize: 14);
+
+  TextStyle get s16 => copyWith(fontSize: 16);
+
   TextStyle withColor(Color? color) => copyWith(color: color);
 }
 

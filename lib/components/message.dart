@@ -320,8 +320,8 @@ class ContentDialog extends StatelessWidget {
     // Shape, elevation, shadow and surface color all come from dialogTheme.
     return Dialog(
       insetPadding: context.width < 400
-          ? const EdgeInsets.symmetric(horizontal: 4)
-          : const EdgeInsets.symmetric(horizontal: 16),
+          ? const EdgeInsets.symmetric(horizontal: 4, vertical: 12)
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: AnimatedSize(
         duration: const Duration(milliseconds: 200),
         alignment: Alignment.topCenter,

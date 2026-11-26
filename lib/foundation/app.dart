@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:venera/foundation/history.dart';
 
+import 'bangumi.dart';
 import 'read_later.dart';
 import 'appdata.dart';
 import 'favorites.dart';
@@ -101,6 +102,7 @@ class _App {
       favorites.init(),
       local.init(),
       readLater.init(),
+      BangumiManager().init(),
     ]);
   }
 

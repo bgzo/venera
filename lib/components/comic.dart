@@ -23,6 +23,8 @@ ImageProvider? _findImageProvider(Comic comic) {
   return image;
 }
 
+ComicType _comicTypeOf(Comic comic) => ComicType.fromKey(comic.sourceKey);
+
 class _TapScaleBuilder extends StatefulWidget {
   const _TapScaleBuilder({
     required this.child,
@@ -166,6 +168,12 @@ class ComicTile extends StatelessWidget {
           addFavorite([comic]);
         },
       ),
+      if (BangumiManager().isEnabled)
+        MenuEntry(
+          icon: Icons.sync_alt,
+          text: 'Bangumi'.tl,
+          onClick: () => showBangumiDialog(comic),
+        ),
       MenuEntry(
         icon: Icons.watch_later_outlined,
         text:
@@ -206,71 +214,83 @@ class ComicTile extends StatelessWidget {
         ? _buildDetailedMode(context)
         : _buildBriefMode(context);
 
+    final comicType = _comicTypeOf(comic);
     var isFavorite = appdata.settings['showFavoriteStatusOnTile']
-        ? LocalFavoritesManager().isExist(
-            comic.id,
-            ComicType(comic.sourceKey.hashCode),
-          )
+        ? LocalFavoritesManager().isExist(comic.id, comicType)
         : false;
     var history = appdata.settings['showHistoryStatusOnTile']
-        ? HistoryManager().find(comic.id, ComicType(comic.sourceKey.hashCode))
+        ? HistoryManager().find(comic.id, comicType)
         : null;
     if (history?.page == 0) {
       history!.page = 1;
     }
+    final bangumi =
+        BangumiManager().isEnabled &&
+            appdata.settings['showBangumiStatusOnTile'] == true
+        ? BangumiManager().linkOf(comic.id, comic.sourceKey)
+        : null;
 
-    if (!isFavorite && history == null) {
+    if (!isFavorite && history == null && bangumi == null) {
       return child;
     }
 
     return Stack(
       children: [
         Positioned.fill(child: child),
-        Positioned(
-          left: type == 'detailed' ? 16 : 6,
-          top: 8,
-          child: Container(
-            height: 24,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
-            clipBehavior: Clip.antiAlias,
-            child: Row(
-              children: [
-                if (isFavorite)
-                  Container(
-                    height: 24,
-                    width: 24,
-                    color: Colors.green,
-                    child: const Icon(
-                      Icons.bookmark_rounded,
-                      size: 16,
-                      color: Colors.white,
+        if (bangumi != null)
+          Positioned(
+            left: type == 'detailed' ? 16 : null,
+            right: type == 'detailed' ? null : 6,
+            top: type == 'detailed' ? null : 8,
+            bottom: type == 'detailed' ? 8 : null,
+            child: _BangumiBadge(link: bangumi),
+          ),
+        if (isFavorite || history != null)
+          Positioned(
+            left: type == 'detailed' ? 16 : 6,
+            top: 8,
+            child: Container(
+              height: 24,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+              clipBehavior: Clip.antiAlias,
+              child: Row(
+                children: [
+                  if (isFavorite)
+                    Container(
+                      height: 24,
+                      width: 24,
+                      color: Colors.green,
+                      child: const Icon(
+                        Icons.bookmark_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                if (history != null)
-                  Container(
-                    height: 24,
-                    color: Colors.blue.toOpacity(0.9),
-                    constraints: const BoxConstraints(minWidth: 24),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Center(
-                      child: Text(
-                        _buildHistoryProgressText(
-                          history.page,
-                          history.maxPage,
-                          history.ep,
-                        ),
-                        style: context.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
+                  if (history != null)
+                    Container(
+                      height: 24,
+                      color: Colors.blue.toOpacity(0.9),
+                      constraints: const BoxConstraints(minWidth: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Center(
+                        child: Text(
+                          _buildHistoryProgressText(
+                            history.page,
+                            history.maxPage,
+                            history.ep,
+                          ),
+                          style: context.textTheme.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -846,6 +866,7 @@ class _SliverGridComicsState extends State<SliverGridComics> {
     if (widget.listenToManagers) {
       HistoryManager().addListener(update);
       LocalFavoritesManager().addListener(update);
+      BangumiManager().addListener(update);
     }
     // Listened to regardless of [SliverGridComics.listenToManagers]: the
     // manager listeners are owned by the parent, but blocked-word filtering
@@ -859,6 +880,7 @@ class _SliverGridComicsState extends State<SliverGridComics> {
     if (widget.listenToManagers) {
       HistoryManager().removeListener(update);
       LocalFavoritesManager().removeListener(update);
+      BangumiManager().removeListener(update);
     }
     appdata.settings.removeListener(_onSettingsChanged);
     super.dispose();
@@ -1496,5 +1518,61 @@ class SimpleComicTile extends StatelessWidget {
     }
 
     return child;
+  }
+}
+
+class _BangumiBadge extends StatelessWidget {
+  const _BangumiBadge({required this.link});
+
+  final BangumiLink link;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _chip(
+          context,
+          link.collectionType.labelKey.tl,
+          _statusColor(link.collectionType),
+        ),
+        if (link.seriesStatus == BangumiSeriesStatus.completed) ...[
+          const SizedBox(height: 4),
+          _chip(context, 'Bangumi: finished'.tl, Colors.deepPurple),
+        ],
+      ],
+    );
+  }
+
+  Widget _chip(BuildContext context, String text, Color color) {
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: color.toOpacity(0.9),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: context.textTheme.labelMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(BangumiCollectionType type) {
+    return switch (type) {
+      BangumiCollectionType.wish => Colors.grey,
+      BangumiCollectionType.done => Colors.green,
+      BangumiCollectionType.doing => Colors.blue,
+      BangumiCollectionType.onHold => Colors.orange,
+      BangumiCollectionType.dropped => Colors.red,
+    };
   }
 }

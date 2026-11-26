@@ -110,12 +110,14 @@ class PopUpWidgetScaffold extends StatefulWidget {
     required this.title,
     required this.body,
     this.tailing,
+    this.titleIcon,
     super.key,
   });
 
   final Widget body;
   final List<Widget>? tailing;
   final String title;
+  final Widget? titleIcon;
 
   @override
   State<PopUpWidgetScaffold> createState() => _PopUpWidgetScaffoldState();
@@ -150,6 +152,10 @@ class _PopUpWidgetScaffoldState extends State<PopUpWidgetScaffold> {
                   ),
                 ),
                 const SizedBox(width: 16),
+                if (widget.titleIcon != null) ...[
+                  widget.titleIcon!,
+                  const SizedBox(width: 8),
+                ],
                 Text(widget.title, style: context.textTheme.titleLarge),
                 const Spacer(),
                 if (widget.tailing != null) ...widget.tailing!,

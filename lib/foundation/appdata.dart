@@ -122,6 +122,8 @@ class Appdata with Init {
     "imageFavoritesDisplayType",
     "commentFontSize",
     "uiFontScale",
+    // Tied to the local Bangumi token, which never goes through WebDAV.
+    "bangumiEnabled",
   ];
 
   static const _archiveSyncFields = ["backupWebdav", "backupWebdavPath"];
@@ -230,6 +232,10 @@ class Settings with ChangeNotifier {
     'searchSources': null,
     'showFavoriteStatusOnTile': true,
     'showHistoryStatusOnTile': false,
+    'bangumiEnabled': false,
+    'bangumiAutoSync': true,
+    'bangumiSyncReminder': false,
+    'showBangumiStatusOnTile': true,
     'historyRetentionDays': 0, // 0 means disabled; 7-182 days
     'blockedWords': [],
     'blockedCommentWords': [],

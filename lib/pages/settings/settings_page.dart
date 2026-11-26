@@ -8,14 +8,18 @@ import 'package:venera/components/components.dart';
 import 'package:venera/components/pin_pad.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/cache_manager.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
 import 'package:venera/foundation/favorites.dart';
 import 'package:venera/foundation/history.dart';
+import 'package:venera/foundation/image_provider/cached_image.dart';
 import 'package:venera/foundation/js_engine.dart';
 import 'package:venera/foundation/local.dart';
 import 'package:venera/foundation/log.dart';
 import 'package:venera/network/app_dio.dart';
+import 'package:venera/network/bangumi.dart';
+import 'package:venera/pages/bangumi_page.dart';
 import 'package:venera/super_resolution/super_resolution_service.dart';
 import 'package:venera/utils/auth_storage.dart';
 import 'package:venera/utils/data.dart';
@@ -39,8 +43,12 @@ part 'webdav.dart';
 part 'auth_pin_setting.dart';
 part 'about.dart';
 part 'network.dart';
+part 'bangumi.dart';
 part 'super_resolution.dart';
 part 'debug.dart';
+
+/// Index of the Bangumi page in [SettingsPage].
+const bangumiSettingsPageIndex = 7;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({this.initialPage = -1, super.key});
@@ -66,6 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
     "Local Favorites",
     "APP",
     "Network",
+    "Bangumi",
     "超分",
     "About",
     "Debug",
@@ -79,6 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Icons.collections_bookmark_rounded,
     Icons.apps,
     Icons.public,
+    Icons.menu_book,
     Icons.auto_awesome,
     Icons.info,
     Icons.bug_report,
@@ -201,7 +211,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: Row(
           children: [
-            Icon(icons[id]),
+            id == bangumiSettingsPageIndex
+                ? const BangumiIcon(monochrome: true)
+                : Icon(icons[id]),
             const SizedBox(width: 16),
             Text(name, style: context.textTheme.bodyLarge),
             const Spacer(),
@@ -259,9 +271,10 @@ class _SettingsPageState extends State<SettingsPage> {
       4 => const LocalFavoritesSettings(),
       5 => const AppSettings(),
       6 => const NetworkSettings(),
-      7 => const SuperResolutionSettings(),
-      8 => const AboutSettings(),
-      9 => const DebugPage(),
+      7 => const BangumiSettings(),
+      8 => const SuperResolutionSettings(),
+      9 => const AboutSettings(),
+      10 => const DebugPage(),
       _ => throw UnimplementedError(),
     };
   }
@@ -286,9 +299,10 @@ class _SettingsDetailPage extends StatelessWidget {
       4 => const LocalFavoritesSettings(),
       5 => const AppSettings(),
       6 => const NetworkSettings(),
-      7 => const SuperResolutionSettings(),
-      8 => const AboutSettings(),
-      9 => const DebugPage(),
+      7 => const BangumiSettings(),
+      8 => const SuperResolutionSettings(),
+      9 => const AboutSettings(),
+      10 => const DebugPage(),
       _ => throw UnimplementedError(),
     };
   }

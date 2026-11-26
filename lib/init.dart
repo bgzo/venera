@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_saf/flutter_saf.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:venera/foundation/app.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/cache_manager.dart';
 import 'package:venera/foundation/comic_source/comic_source.dart';
 import 'package:venera/foundation/js_engine.dart';
@@ -38,6 +39,31 @@ extension _FutureInit<T> on Future<T> {
 
 Future<void> init() async {
   await App.init().wait();
+  BangumiManager().onAutoSynced = (link, ep) {
+    final context = App.rootNavigatorKey.currentContext;
+    if (context == null || appdata.settings['bangumiSyncReminder'] != true) {
+      return;
+    }
+    context.showMessage(
+      message: 'Bangumi progress synced: @name · @ep'.tlParams({
+        'name': link.displayName,
+        'ep': ep,
+      }),
+    );
+  };
+  // Failures are always surfaced, even when the success reminder is off.
+  BangumiManager().onAutoSyncFailed = (link, ep, error) {
+    final context = App.rootNavigatorKey.currentContext;
+    if (context == null) {
+      return;
+    }
+    context.showMessage(
+      message: 'Bangumi sync failed: @name · @reason'.tlParams({
+        'name': link.displayName,
+        'reason': bangumiErrorText(error),
+      }),
+    );
+  };
   await SingleInstanceCookieJar.createInstance();
   try {
     var futures = [
