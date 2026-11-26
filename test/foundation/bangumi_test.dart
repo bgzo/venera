@@ -373,6 +373,23 @@ void main() {
       );
     });
 
+    test('turns the master switch off when the token is gone', () async {
+      appdata.implicitData.remove('bangumiToken');
+      await manager.reconcileEnabled();
+      expect(appdata.settings['bangumiEnabled'], isFalse);
+
+      // A stored token is enough to keep an enabled switch enabled.
+      appdata.implicitData['bangumiToken'] = 'token';
+      await manager.setEnabled(true);
+      await manager.reconcileEnabled();
+      expect(appdata.settings['bangumiEnabled'], isTrue);
+    });
+
+    test('clearing the token turns the master switch off', () async {
+      await manager.setToken('');
+      expect(appdata.settings['bangumiEnabled'], isFalse);
+    });
+
     test('does nothing while the master switch is off', () async {
       await link();
       appdata.settings['bangumiEnabled'] = false;

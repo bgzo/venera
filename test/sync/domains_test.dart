@@ -484,13 +484,14 @@ void main() {
       'uiFontScale',
       'commentFontSize',
       'imageFavoritesDisplayType',
+      'bangumiEnabled',
       'searchHistory',
       'implicitData',
     };
 
     test('matches protocol §3.2 exactly', () {
       expect(SyncSettingKeys.deviceLocal, expectedDeviceLocal);
-      expect(SyncSettingKeys.deviceLocal, hasLength(20));
+      expect(SyncSettingKeys.deviceLocal, hasLength(21));
 
       // Each public constant must equal its wire key.
       expect(<String>{
@@ -512,6 +513,7 @@ void main() {
         SyncSettingKeys.uiFontScale,
         SyncSettingKeys.commentFontSize,
         SyncSettingKeys.imageFavoritesDisplayType,
+        SyncSettingKeys.bangumiEnabled,
         SyncSettingKeys.searchHistory,
         SyncSettingKeys.implicitData,
       }, expectedDeviceLocal);

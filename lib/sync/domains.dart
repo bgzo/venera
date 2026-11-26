@@ -444,6 +444,10 @@ abstract final class SyncSettingKeys {
   /// Image favorites display mode.
   static const String imageFavoritesDisplayType = 'imageFavoritesDisplayType';
 
+  /// Master Bangumi switch. It depends on the device-local token, so syncing
+  /// it would enable the feature on devices that cannot use it.
+  static const String bangumiEnabled = 'bangumiEnabled';
+
   /// Search history.
   static const String searchHistory = 'searchHistory';
 
@@ -470,6 +474,7 @@ abstract final class SyncSettingKeys {
     uiFontScale,
     commentFontSize,
     imageFavoritesDisplayType,
+    bangumiEnabled,
     searchHistory,
     implicitData,
   };

@@ -122,6 +122,8 @@ class Appdata with Init {
     "imageFavoritesDisplayType",
     "commentFontSize",
     "uiFontScale",
+    // Tied to the local Bangumi token, which never goes through WebDAV.
+    "bangumiEnabled",
   ];
 
   static const _archiveSyncFields = ["backupWebdav", "backupWebdavPath"];

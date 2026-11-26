@@ -187,7 +187,21 @@ class BangumiManager with ChangeNotifier {
     }
     HistoryManager().addListener(_onHistoryChanged);
     isInitialized = true;
+    await reconcileEnabled();
     notifyListeners();
+  }
+
+  /// Drops the links loaded from the database so an imported database can
+  /// replace the file in use.
+  void close() {
+    if (!isInitialized) {
+      return;
+    }
+    isInitialized = false;
+    HistoryManager().removeListener(_onHistoryChanged);
+    _links.clear();
+    _syncing.clear();
+    _db.dispose();
   }
 
   @visibleForTesting
@@ -233,11 +247,25 @@ class BangumiManager with ChangeNotifier {
   }
 
   Future<void> setEnabled(bool value) async {
+    if (value && token.isEmpty) {
+      return;
+    }
     if (appdata.settings['bangumiEnabled'] == value) {
       return;
     }
     appdata.settings['bangumiEnabled'] = value;
     await appdata.saveData();
+    notifyListeners();
+  }
+
+  /// Turns the master switch off when the stored token is gone, e.g. after
+  /// importing a backup that did not carry one.
+  Future<void> reconcileEnabled() async {
+    if (appdata.settings['bangumiEnabled'] != true || token.isNotEmpty) {
+      return;
+    }
+    appdata.settings['bangumiEnabled'] = false;
+    await appdata.saveData(false);
     notifyListeners();
   }
 
@@ -261,6 +289,7 @@ class BangumiManager with ChangeNotifier {
       appdata.implicitData['bangumiToken'] = token;
     }
     await appdata.writeImplicitData();
+    await reconcileEnabled();
   }
 
   BangumiLink? linkOf(String comicId, String sourceKey) {
