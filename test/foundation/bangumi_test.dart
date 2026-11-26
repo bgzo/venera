@@ -389,6 +389,18 @@ void main() {
       expect(client.updates, isEmpty);
     });
 
+    test('does not send chapter progress for volume-only links', () async {
+      final saved = await manager.linkAndSync(
+        comicId: '1',
+        sourceKey: 'local',
+        subject: volumeSubject,
+        type: BangumiCollectionType.wish,
+        epStatus: 5,
+      );
+      expect(saved.epStatus, 0);
+      expect(client.updates.single.epStatus, isNull);
+    });
+
     test('does not send progress when the collection is wish', () async {
       final saved = await manager.linkAndSync(
         comicId: '1',

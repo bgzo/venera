@@ -293,12 +293,17 @@ class BangumiManager with ChangeNotifier {
     required int epStatus,
   }) async {
     _requireInitialized();
-    final targetEp = type == BangumiCollectionType.wish
+    final volumeOnly = subject.eps == 0 && subject.volumes > 0;
+    final targetEp = volumeOnly || type == BangumiCollectionType.wish
         ? 0
         : type == BangumiCollectionType.done && subject.eps > 0
         ? max(epStatus, subject.eps)
         : epStatus;
-    await client.updateCollection(subject.id, type: type, epStatus: targetEp);
+    await client.updateCollection(
+      subject.id,
+      type: type,
+      epStatus: volumeOnly ? null : targetEp,
+    );
     final link = BangumiLink(
       comicId: comicId,
       sourceKey: sourceKey,
@@ -322,7 +327,8 @@ class BangumiManager with ChangeNotifier {
     required int epStatus,
   }) async {
     _requireInitialized();
-    final targetEp = type == BangumiCollectionType.wish
+    final volumeOnly = link.totalEps == 0 && link.totalVolumes > 0;
+    final targetEp = volumeOnly || type == BangumiCollectionType.wish
         ? 0
         : type == BangumiCollectionType.done && link.totalEps > 0
         ? max(epStatus, link.totalEps)
@@ -330,7 +336,7 @@ class BangumiManager with ChangeNotifier {
     await client.updateCollection(
       link.subjectId,
       type: type != link.collectionType ? type : null,
-      epStatus: targetEp != link.epStatus ? targetEp : null,
+      epStatus: volumeOnly || targetEp == link.epStatus ? null : targetEp,
     );
     final updated = link.copyWith(
       collectionType: type,
