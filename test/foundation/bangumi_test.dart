@@ -7,7 +7,10 @@ import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/history.dart';
 import 'package:venera/network/bangumi.dart';
 
+import '../support/app_test_harness.dart';
+
 void main() {
+  setUpAll(initAppForTest);
   group('seriesStatusFromInfobox', () {
     test('completed when an end date exists', () {
       expect(
@@ -438,13 +441,81 @@ void main() {
           epStatus: 0,
         );
         blocker.complete();
-        await Future<void>.delayed(Duration.zero);
+        await pumpEventQueue();
+
+        expect(client.updates, hasLength(3));
+        expect(client.updates.last.type, BangumiCollectionType.onHold);
+        expect(client.updates.last.epStatus, 0);
 
         final latest = manager.linkOf('1', 'local')!;
         expect(latest.collectionType, BangumiCollectionType.onHold);
         expect(latest.epStatus, 0);
       },
     );
+
+    test('disables the master switch only for auth errors', () async {
+      await manager.disableForAuthError(BangumiException('network down'));
+      expect(appdata.settings['bangumiEnabled'], isTrue);
+
+      await manager.disableForAuthError(
+        BangumiException('Bangumi token is invalid or expired'),
+      );
+      expect(appdata.settings['bangumiEnabled'], isFalse);
+    });
+
+    test('syncFromRemote overwrites the local type and progress', () async {
+      final saved = await link(type: BangumiCollectionType.doing, epStatus: 5);
+      final updated = await manager.syncFromRemote(
+        saved,
+        const BangumiUserCollection(
+          type: BangumiCollectionType.onHold,
+          epStatus: 2,
+        ),
+      );
+      expect(updated.collectionType, BangumiCollectionType.onHold);
+      expect(updated.epStatus, 2);
+      expect(
+        manager.linkOf('1', 'local')!.collectionType,
+        BangumiCollectionType.onHold,
+      );
+    });
+
+    test('localProgress uses the matching history source', () {
+      HistoryManager().clearHistory();
+      HistoryManager().addHistory(history(1));
+      HistoryManager().addHistory(
+        History.fromMap({
+          'type': 1,
+          'time': 0,
+          'title': 'title',
+          'subtitle': '',
+          'cover': '',
+          'ep': 7,
+          'page': 1,
+          'id': '1',
+          'readEpisode': <String>[],
+          'max_page': 1,
+          'chapter_group': null,
+        }),
+      );
+      expect(manager.localProgress('1', 'local'), 1);
+      HistoryManager().clearHistory();
+    });
+
+    test('reuses the client until the token changes', () {
+      var created = 0;
+      manager.clientFactory = (_) {
+        created++;
+        return _FakeBangumiClient();
+      };
+      final first = manager.client;
+      expect(identical(manager.client, first), isTrue);
+      expect(created, 1);
+
+      appdata.implicitData['bangumiToken'] = 'other';
+      expect(identical(manager.client, first), isFalse);
+      expect(created, 2);
+    });
   });
 }
 
