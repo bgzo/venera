@@ -358,6 +358,29 @@ void main() {
       expect(client.updates, isEmpty);
     });
 
+    test('does not send progress when the collection is wish', () async {
+      final saved = await manager.linkAndSync(
+        comicId: '1',
+        sourceKey: 'local',
+        subject: subject,
+        type: BangumiCollectionType.wish,
+        epStatus: 5,
+      );
+      expect(saved.epStatus, 0);
+      expect(client.updates.single.epStatus, 0);
+    });
+
+    test('resets progress when switching a link to wish', () async {
+      final saved = await link(type: BangumiCollectionType.doing, epStatus: 5);
+      final updated = await manager.updateLink(
+        saved,
+        type: BangumiCollectionType.wish,
+        epStatus: 5,
+      );
+      expect(updated.epStatus, 0);
+      expect(client.updates.single.epStatus, 0);
+    });
+
     test('moves wish to doing and sends the new chapter', () async {
       await link();
       manager.autoSyncForTest(history(1));

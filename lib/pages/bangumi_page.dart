@@ -589,6 +589,13 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
                 ),
             ],
           ),
+          if (_type == BangumiCollectionType.wish && _localEp > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Reading a new chapter will switch the status to reading.'.tl,
+              style: context.textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: subject == null || _saving ? null : _save,

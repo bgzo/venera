@@ -282,7 +282,9 @@ class BangumiManager with ChangeNotifier {
     required int epStatus,
   }) async {
     _requireInitialized();
-    final targetEp = type == BangumiCollectionType.done && subject.eps > 0
+    final targetEp = type == BangumiCollectionType.wish
+        ? 0
+        : type == BangumiCollectionType.done && subject.eps > 0
         ? max(epStatus, subject.eps)
         : epStatus;
     await clientFactory(
@@ -311,7 +313,9 @@ class BangumiManager with ChangeNotifier {
     required int epStatus,
   }) async {
     _requireInitialized();
-    final targetEp = type == BangumiCollectionType.done && link.totalEps > 0
+    final targetEp = type == BangumiCollectionType.wish
+        ? 0
+        : type == BangumiCollectionType.done && link.totalEps > 0
         ? max(epStatus, link.totalEps)
         : epStatus;
     await clientFactory(
