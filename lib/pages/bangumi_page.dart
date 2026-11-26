@@ -339,13 +339,21 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
       });
       try {
         final remote = await client.getCollection(link.subjectId);
-        if (!mounted) return;
-        setState(() {
-          _remote = remote;
-          if (remote != null) {
+        if (remote != null) {
+          final latest =
+              _manager.linkOf(widget.comic.id, widget.comic.sourceKey) ??
+              refreshed;
+          final updated = await _manager.syncFromRemote(latest, remote);
+          if (!mounted) return;
+          setState(() {
+            _remote = remote;
             _type = remote.type;
-          }
-        });
+            _link = updated;
+          });
+        } else {
+          if (!mounted) return;
+          setState(() => _remote = null);
+        }
       } catch (e) {
         if (!mounted) return;
         setState(() => _error = bangumiErrorText(e));

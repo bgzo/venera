@@ -129,6 +129,54 @@ void main() {
     });
   });
 
+  group('reconcileLink', () {
+    BangumiLink link({
+      BangumiCollectionType type = BangumiCollectionType.wish,
+      int epStatus = 0,
+    }) {
+      return BangumiLink(
+        comicId: '1',
+        sourceKey: 'source',
+        subjectId: 2,
+        subjectName: 'Name',
+        subjectNameCn: '',
+        seriesStatus: BangumiSeriesStatus.ongoing,
+        totalEps: 10,
+        totalVolumes: 0,
+        collectionType: type,
+        epStatus: epStatus,
+        updatedAt: DateTime(2026),
+      );
+    }
+
+    test('returns null when the local copy already matches', () {
+      expect(
+        reconcileLink(
+          link(type: BangumiCollectionType.doing, epStatus: 3),
+          const BangumiUserCollection(
+            type: BangumiCollectionType.doing,
+            epStatus: 3,
+          ),
+        ),
+        isNull,
+      );
+    });
+
+    test('adopts the remote type and progress, including a lower progress', () {
+      final updated = reconcileLink(
+        link(type: BangumiCollectionType.doing, epStatus: 5),
+        const BangumiUserCollection(
+          type: BangumiCollectionType.onHold,
+          epStatus: 2,
+        ),
+      );
+      expect(updated, isNotNull);
+      expect(updated!.collectionType, BangumiCollectionType.onHold);
+      expect(updated.epStatus, 2);
+      expect(updated.comicId, '1');
+    });
+  });
+
   group('JSON parsing', () {
     test('subject metadata and infobox', () {
       final subject = BangumiSubject.fromJson({

@@ -37,6 +37,20 @@ String bangumiErrorText(Object error) {
 int historyProgress(History history) =>
     history.group == null ? history.ep : history.readEpisode.length;
 
+/// Returns [link] with the remote collection state, or null when the local
+/// copy already matches. The remote collection is the source of truth when
+/// the subject page opens.
+BangumiLink? reconcileLink(BangumiLink link, BangumiUserCollection remote) {
+  if (link.collectionType == remote.type && link.epStatus == remote.epStatus) {
+    return null;
+  }
+  return link.copyWith(
+    collectionType: remote.type,
+    epStatus: remote.epStatus,
+    updatedAt: DateTime.now(),
+  );
+}
+
 /// Local mapping between a comic and its Bangumi subject.
 class BangumiLink {
   const BangumiLink({
@@ -290,6 +304,20 @@ class BangumiManager with ChangeNotifier {
       totalEps: subject.eps,
       totalVolumes: subject.volumes,
     );
+    await _save(updated);
+    return updated;
+  }
+
+  /// Adopts the remote collection as the source of truth when the subject page
+  /// opens, so a status changed on Bangumi wins over the local cache.
+  Future<BangumiLink> syncFromRemote(
+    BangumiLink link,
+    BangumiUserCollection remote,
+  ) async {
+    final updated = reconcileLink(link, remote);
+    if (updated == null) {
+      return link;
+    }
     await _save(updated);
     return updated;
   }
