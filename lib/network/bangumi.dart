@@ -278,10 +278,14 @@ class BangumiUserCollection {
   }
 }
 
+/// Coarse error category, so callers do not depend on message wording.
+enum BangumiErrorKind { auth, permission, notFound, rateLimit, storage, other }
+
 class BangumiException implements Exception {
-  BangumiException(this.message);
+  BangumiException(this.message, {this.kind = BangumiErrorKind.other});
 
   final String message;
+  final BangumiErrorKind kind;
 
   @override
   String toString() => message;
@@ -323,7 +327,7 @@ class BangumiClient {
       final res = await _dio.get('/v0/me', options: _getOptions());
       return BangumiUser.fromJson(_asMap(res.data));
     } on DioException catch (e) {
-      throw BangumiException(_errorMessage(e));
+      throw _error(e);
     }
   }
 
@@ -346,7 +350,7 @@ class BangumiClient {
       );
       return BangumiSearchResult.fromJson(_asMap(res.data));
     } on DioException catch (e) {
-      throw BangumiException(_errorMessage(e));
+      throw _error(e);
     }
   }
 
@@ -358,7 +362,7 @@ class BangumiClient {
       );
       return BangumiSubject.fromJson(_asMap(res.data));
     } on DioException catch (e) {
-      throw BangumiException(_errorMessage(e));
+      throw _error(e);
     }
   }
 
@@ -374,7 +378,7 @@ class BangumiClient {
       if (e.response?.statusCode == 404) {
         return null;
       }
-      throw BangumiException(_errorMessage(e));
+      throw _error(e);
     }
   }
 
@@ -401,7 +405,7 @@ class BangumiClient {
         options: _postOptions(),
       );
     } on DioException catch (e) {
-      throw BangumiException(_errorMessage(e));
+      throw _error(e);
     }
   }
 }
@@ -429,19 +433,31 @@ String _firstImageUrl(dynamic images, List<String> keys) {
   return '';
 }
 
-String _errorMessage(DioException e) {
+BangumiException _error(DioException e) {
   final code = e.response?.statusCode;
   if (code == 401) {
-    return 'Bangumi token is invalid or expired';
+    return BangumiException(
+      'Bangumi token is invalid or expired',
+      kind: BangumiErrorKind.auth,
+    );
   }
   if (code == 403) {
-    return 'Bangumi permission denied';
+    return BangumiException(
+      'Bangumi permission denied',
+      kind: BangumiErrorKind.permission,
+    );
   }
   if (code == 404) {
-    return 'Not found on Bangumi';
+    return BangumiException(
+      'Not found on Bangumi',
+      kind: BangumiErrorKind.notFound,
+    );
   }
   if (code == 429) {
-    return 'Too many requests. Please try again later.';
+    return BangumiException(
+      'Too many requests. Please try again later.',
+      kind: BangumiErrorKind.rateLimit,
+    );
   }
   final data = e.response?.data;
   if (data is Map) {
@@ -452,8 +468,8 @@ String _errorMessage(DioException e) {
       description,
     ].where((e) => e != null && e.isNotEmpty).join(': ');
     if (detail.isNotEmpty) {
-      return detail;
+      return BangumiException(detail);
     }
   }
-  return e.message ?? e.toString();
+  return BangumiException(e.message ?? e.toString());
 }

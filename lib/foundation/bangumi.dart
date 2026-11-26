@@ -30,23 +30,19 @@ const _linksTableSql = '''
 
 /// User-facing text for errors returned by [BangumiClient].
 String bangumiErrorText(Object error) {
-  final text = error.toString();
-  if (text.contains('invalid or expired')) {
-    return 'Bangumi token is invalid or expired'.tl;
+  if (error is! BangumiException) {
+    return error.toString();
   }
-  if (text.contains('permission denied')) {
-    return 'Bangumi permission denied'.tl;
-  }
-  if (text.contains('Not found on Bangumi')) {
-    return 'Not found on Bangumi'.tl;
-  }
-  if (text.contains('storage is unavailable')) {
-    return 'Bangumi storage is unavailable. Restart the app and try again.'.tl;
-  }
-  if (text.contains('Too many requests')) {
-    return 'Too many requests. Please try again later.'.tl;
-  }
-  return text;
+  return switch (error.kind) {
+    BangumiErrorKind.auth => 'Bangumi token is invalid or expired'.tl,
+    BangumiErrorKind.permission => 'Bangumi permission denied'.tl,
+    BangumiErrorKind.notFound => 'Not found on Bangumi'.tl,
+    BangumiErrorKind.rateLimit =>
+      'Too many requests. Please try again later.'.tl,
+    BangumiErrorKind.storage =>
+      'Bangumi storage is unavailable. Restart the app and try again.'.tl,
+    BangumiErrorKind.other => error.message,
+  };
 }
 
 /// Current reading progress for a history record.
@@ -248,7 +244,7 @@ class BangumiManager with ChangeNotifier {
   /// Turns the master switch off when the token is no longer accepted, so an
   /// expired token stops retrying on every chapter.
   Future<void> disableForAuthError(Object error) async {
-    if (!error.toString().contains('invalid or expired')) {
+    if (error is! BangumiException || error.kind != BangumiErrorKind.auth) {
       return;
     }
     await setEnabled(false);
@@ -531,7 +527,10 @@ class BangumiManager with ChangeNotifier {
 
   void _requireInitialized() {
     if (!isInitialized) {
-      throw BangumiException('Bangumi storage is unavailable');
+      throw BangumiException(
+        'Bangumi storage is unavailable',
+        kind: BangumiErrorKind.storage,
+      );
     }
   }
 

@@ -489,7 +489,10 @@ void main() {
       await link();
       Object? failure;
       manager.onAutoSyncFailed = (_, _, error) => failure = error;
-      client.error = BangumiException('Bangumi token is invalid or expired');
+      client.error = BangumiException(
+        'Bangumi token is invalid or expired',
+        kind: BangumiErrorKind.auth,
+      );
 
       manager.autoSyncForTest(history(1));
       await pumpEventQueue();
@@ -516,7 +519,10 @@ void main() {
       expect(appdata.settings['bangumiEnabled'], isTrue);
 
       await manager.disableForAuthError(
-        BangumiException('Bangumi token is invalid or expired'),
+        BangumiException(
+          'Bangumi token is invalid or expired',
+          kind: BangumiErrorKind.auth,
+        ),
       );
       expect(appdata.settings['bangumiEnabled'], isFalse);
     });
