@@ -11,11 +11,19 @@ import 'package:venera/pages/settings/settings_page.dart';
 import 'package:venera/utils/translations.dart';
 
 Future<void> showBangumiDialog(Comic comic) async {
-  if (BangumiManager().token.isEmpty) {
+  final manager = BangumiManager();
+  if (!manager.isInitialized) {
+    App.rootContext.showMessage(
+      message:
+          'Bangumi storage is unavailable. Restart the app and try again.'.tl,
+    );
+    return;
+  }
+  if (manager.token.isEmpty) {
     await _showTokenSetup();
     return;
   }
-  final link = BangumiManager().linkOf(comic.id, comic.sourceKey);
+  final link = manager.linkOf(comic.id, comic.sourceKey);
   await showPopUpWidget(
     App.rootContext,
     link == null

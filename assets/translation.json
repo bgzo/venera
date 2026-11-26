@@ -601,7 +601,11 @@
     "Usage": "使用说明",
     "Get or manage Access Token": "获取或管理 Access Token",
     "Token expiry is managed by Bangumi; check it on the token page.": "Token 有效期由 Bangumi 管理，可在 Token 页面查看。",
-    "Bangumi sync failed: @name · @reason": "Bangumi 同步失败：@name · @reason"
+    "Bangumi sync failed: @name · @reason": "Bangumi 同步失败：@name · @reason",
+    "Bangumi storage is unavailable. Restart the app and try again.": "Bangumi 本地数据不可用，请重启应用后重试。",
+    "Bangumi permission denied": "Bangumi 权限不足",
+    "Not found on Bangumi": "Bangumi 上未找到该条目",
+    "Automatic sync updates chapter progress only; volume progress is not synced.": "自动同步仅更新章节进度，不会同步卷进度。"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1205,6 +1209,10 @@
     "Usage": "使用說明",
     "Get or manage Access Token": "取得或管理 Access Token",
     "Token expiry is managed by Bangumi; check it on the token page.": "Token 有效期由 Bangumi 管理，可在 Token 頁面查看。",
-    "Bangumi sync failed: @name · @reason": "Bangumi 同步失敗：@name · @reason"
+    "Bangumi sync failed: @name · @reason": "Bangumi 同步失敗：@name · @reason",
+    "Bangumi storage is unavailable. Restart the app and try again.": "Bangumi 本機資料無法使用，請重新啟動應用程式後再試。",
+    "Bangumi permission denied": "Bangumi 權限不足",
+    "Not found on Bangumi": "在 Bangumi 上找不到該條目",
+    "Automatic sync updates chapter progress only; volume progress is not synced.": "自動同步僅更新章節進度，不會同步卷進度。"
   }
 }
