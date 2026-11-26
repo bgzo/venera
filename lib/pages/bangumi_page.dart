@@ -94,6 +94,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
   var _searched = false;
   var _hasMore = false;
   String? _error;
+  var _requestId = 0;
 
   @override
   void initState() {
@@ -125,13 +126,11 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
   }
 
   Future<void> _search() async {
-    if (_loading) {
-      return;
-    }
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty) {
       return;
     }
+    final requestId = ++_requestId;
     setState(() {
       _loading = true;
       _searched = true;
@@ -146,16 +145,16 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       final result = await BangumiClient(
         _manager.token,
       ).searchSubjects(keyword, offset: 0);
-      if (!mounted) return;
+      if (!mounted || requestId != _requestId) return;
       setState(() {
         _items = result.items;
         _hasMore = result.hasMore;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _requestId) return;
       setState(() => _error = bangumiErrorText(e));
     } finally {
-      if (mounted) {
+      if (mounted && requestId == _requestId) {
         setState(() => _loading = false);
       }
     }
@@ -169,6 +168,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
     if (keyword.isEmpty) {
       return;
     }
+    final requestId = _requestId;
     setState(() {
       _loading = true;
       _error = null;
@@ -177,16 +177,16 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
       final result = await BangumiClient(
         _manager.token,
       ).searchSubjects(keyword, offset: _items.length);
-      if (!mounted) return;
+      if (!mounted || requestId != _requestId) return;
       setState(() {
         _items.addAll(result.items);
         _hasMore = result.hasMore;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _requestId) return;
       context.showMessage(message: bangumiErrorText(e));
     } finally {
-      if (mounted) {
+      if (mounted && requestId == _requestId) {
         setState(() => _loading = false);
       }
     }
@@ -218,7 +218,7 @@ class _BangumiSearchPageState extends State<BangumiSearchPage> {
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: _loading ? null : _search,
+                  onPressed: _search,
                 ),
               ),
               onSubmitted: (_) => _search(),
