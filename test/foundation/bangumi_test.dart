@@ -453,6 +453,54 @@ void main() {
       },
     );
 
+    test('converges the remote when progress changes in flight', () async {
+      final saved = await link(type: BangumiCollectionType.doing);
+      final blocker = Completer<void>();
+      client.blocker = blocker;
+      manager.autoSyncForTest(history(1));
+      expect(client.updates, hasLength(1));
+
+      client.blocker = null;
+      await manager.updateLink(
+        saved,
+        type: BangumiCollectionType.doing,
+        epStatus: 10,
+      );
+      blocker.complete();
+      await pumpEventQueue();
+
+      expect(client.updates, hasLength(3));
+      expect(client.updates.last.type, isNull);
+      expect(client.updates.last.epStatus, 10);
+      expect(manager.linkOf('1', 'local')!.epStatus, 10);
+    });
+
+    test('turns the switch off and reports an auth failure', () async {
+      await link();
+      Object? failure;
+      manager.onAutoSyncFailed = (_, _, error) => failure = error;
+      client.error = BangumiException('Bangumi token is invalid or expired');
+
+      manager.autoSyncForTest(history(1));
+      await pumpEventQueue();
+
+      expect(failure, isA<BangumiException>());
+      expect(appdata.settings['bangumiEnabled'], isFalse);
+    });
+
+    test('keeps the switch on for a transient failure', () async {
+      await link();
+      Object? failure;
+      manager.onAutoSyncFailed = (_, _, error) => failure = error;
+      client.error = BangumiException('network down');
+
+      manager.autoSyncForTest(history(1));
+      await pumpEventQueue();
+
+      expect(failure, isNotNull);
+      expect(appdata.settings['bangumiEnabled'], isTrue);
+    });
+
     test('disables the master switch only for auth errors', () async {
       await manager.disableForAuthError(BangumiException('network down'));
       expect(appdata.settings['bangumiEnabled'], isTrue);
@@ -524,6 +572,7 @@ class _FakeBangumiClient extends BangumiClient {
 
   final updates = <_FakeUpdate>[];
   Completer<void>? blocker;
+  Object? error;
 
   @override
   Future<void> updateCollection(
@@ -533,6 +582,10 @@ class _FakeBangumiClient extends BangumiClient {
     int? volStatus,
   }) async {
     updates.add(_FakeUpdate(type, epStatus));
+    final failure = error;
+    if (failure != null) {
+      throw failure;
+    }
     final waitFor = blocker;
     if (waitFor != null) {
       await waitFor.future;
