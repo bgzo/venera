@@ -721,6 +721,8 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
 
   final _selected = <String>{};
 
+  var _selecting = false;
+
   @override
   void initState() {
     super.initState();
@@ -745,6 +747,24 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
         _selected.add(key);
       }
     });
+  }
+
+  void _open(BangumiLink link) {
+    context.to(
+      () => BangumiSubjectPage(
+        comic: Comic(
+          link.displayName,
+          '',
+          link.comicId,
+          null,
+          null,
+          '',
+          link.sourceKey,
+          null,
+          null,
+        ),
+      ),
+    );
   }
 
   void _unlinkSelected() {
@@ -785,19 +805,30 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
           ? null
           : [
               IconButton(
-                tooltip: allSelected ? 'Deselect'.tl : 'Select All'.tl,
-                icon: Icon(allSelected ? Icons.deselect : Icons.select_all),
+                tooltip: _selecting ? 'Cancel'.tl : 'Select'.tl,
+                icon: Icon(_selecting ? Icons.close : Icons.checklist),
                 onPressed: () {
                   setState(() {
-                    if (allSelected) {
-                      _selected.clear();
-                    } else {
-                      _selected.addAll(links.map((link) => link.key));
-                    }
+                    _selecting = !_selecting;
+                    _selected.clear();
                   });
                 },
               ),
-              if (_selected.isNotEmpty)
+              if (_selecting)
+                IconButton(
+                  tooltip: allSelected ? 'Deselect'.tl : 'Select All'.tl,
+                  icon: Icon(allSelected ? Icons.deselect : Icons.select_all),
+                  onPressed: () {
+                    setState(() {
+                      if (allSelected) {
+                        _selected.clear();
+                      } else {
+                        _selected.addAll(links.map((link) => link.key));
+                      }
+                    });
+                  },
+                ),
+              if (_selecting && _selected.isNotEmpty)
                 IconButton(
                   tooltip: 'Unlink selected'.tl,
                   icon: const Icon(Icons.link_off),
@@ -812,10 +843,12 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
                 final link = links[index];
                 final selected = _selected.contains(link.key);
                 return ListTile(
-                  leading: Checkbox(
-                    value: selected,
-                    onChanged: (_) => _toggle(link.key),
-                  ),
+                  leading: _selecting
+                      ? Checkbox(
+                          value: selected,
+                          onChanged: (_) => _toggle(link.key),
+                        )
+                      : const BangumiIcon(size: 24, monochrome: true),
                   title: Text(link.displayName),
                   subtitle: Text(
                     [
@@ -827,8 +860,10 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
                     '${link.epStatus}'
                     '${link.totalEps > 0 ? ' / ${link.totalEps}' : ''}',
                   ),
-                  selected: selected,
-                  onTap: () => _toggle(link.key),
+                  selected: _selecting && selected,
+                  onTap: _selecting
+                      ? () => _toggle(link.key)
+                      : () => _open(link),
                 );
               },
             ),
