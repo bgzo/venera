@@ -43,7 +43,9 @@ void _cleanWalFiles(String dbPath) {
   }
 }
 
-Future<File> exportAppData([bool sync = true]) async {
+/// [sync] selects the WebDAV-shaped `syncdata.json`; the Bangumi token is only
+/// archived for a full local backup so it never leaves the device via sync.
+Future<File> exportAppData([bool sync = false]) async {
   var dataPath = App.dataPath;
 
   // Flush WAL data into main .db files before copying
@@ -88,7 +90,9 @@ Future<File> exportAppData([bool sync = true]) async {
       if (File(bangumiDb).existsSync()) {
         zipFile.addFile("bangumi.db", bangumiDb);
       }
-      zipFile.addFile("bangumi.json", bangumiTokenPath);
+      if (!sync) {
+        zipFile.addFile("bangumi.json", bangumiTokenPath);
+      }
       for (var file in Directory(
         FilePath.join(dataPath, "comic_source"),
       ).listSync()) {
