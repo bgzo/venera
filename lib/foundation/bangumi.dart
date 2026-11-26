@@ -449,9 +449,24 @@ class BangumiManager with ChangeNotifier {
       // Do not undo a manual status change or unlink that happened while the
       // request was in flight.
       final latest = linkOf(link.comicId, link.sourceKey);
-      if (latest == null ||
-          latest.collectionType != link.collectionType ||
-          latest.epStatus >= ep) {
+      if (latest == null) {
+        return;
+      }
+      if (latest.collectionType != link.collectionType) {
+        // The stale request already wrote the old type. Send the local state
+        // again so the remote does not overwrite the manual change when the
+        // subject page opens.
+        final latestEp = latest.collectionType == BangumiCollectionType.wish
+            ? 0
+            : latest.epStatus;
+        await client.updateCollection(
+          latest.subjectId,
+          type: latest.collectionType,
+          epStatus: latestEp != ep ? latestEp : null,
+        );
+        return;
+      }
+      if (latest.epStatus >= ep) {
         return;
       }
       final updated = link.copyWith(
