@@ -597,6 +597,15 @@ class _BangumiSubjectPageState extends State<BangumiSubjectPage> {
               style: context.textTheme.bodySmall,
             ),
           ],
+          if (totalEps == 0 && totalVolumes > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              'This entry tracks volumes; automatic chapter progress sync '
+                      'does not apply.'
+                  .tl,
+              style: context.textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: subject == null || _saving ? null : _save,
