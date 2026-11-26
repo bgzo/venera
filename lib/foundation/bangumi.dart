@@ -40,6 +40,9 @@ String bangumiErrorText(Object error) {
   if (text.contains('Not found on Bangumi')) {
     return 'Not found on Bangumi'.tl;
   }
+  if (text.contains('storage is unavailable')) {
+    return 'Bangumi storage is unavailable. Restart the app and try again.'.tl;
+  }
   if (text.contains('Too many requests')) {
     return 'Too many requests. Please try again later.'.tl;
   }
@@ -278,6 +281,7 @@ class BangumiManager with ChangeNotifier {
     required BangumiCollectionType type,
     required int epStatus,
   }) async {
+    _requireInitialized();
     final targetEp = type == BangumiCollectionType.done && subject.eps > 0
         ? max(epStatus, subject.eps)
         : epStatus;
@@ -306,6 +310,7 @@ class BangumiManager with ChangeNotifier {
     required BangumiCollectionType type,
     required int epStatus,
   }) async {
+    _requireInitialized();
     final targetEp = type == BangumiCollectionType.done && link.totalEps > 0
         ? max(epStatus, link.totalEps)
         : epStatus;
@@ -326,6 +331,9 @@ class BangumiManager with ChangeNotifier {
     BangumiLink link,
     BangumiSubject subject,
   ) async {
+    if (!isInitialized) {
+      return link;
+    }
     final updated = link.copyWith(
       subjectName: subject.name,
       subjectNameCn: subject.nameCn,
@@ -343,6 +351,9 @@ class BangumiManager with ChangeNotifier {
     BangumiLink link,
     BangumiUserCollection remote,
   ) async {
+    if (!isInitialized) {
+      return link;
+    }
     final updated = reconcileLink(link, remote);
     if (updated == null) {
       return link;
@@ -352,6 +363,9 @@ class BangumiManager with ChangeNotifier {
   }
 
   Future<void> removeLink(BangumiLink link) async {
+    if (!isInitialized) {
+      return;
+    }
     _db.execute(
       'DELETE FROM bangumi_links WHERE comic_id = ? AND source_key = ?;',
       [link.comicId, link.sourceKey],
@@ -448,6 +462,9 @@ class BangumiManager with ChangeNotifier {
   }
 
   Future<void> _save(BangumiLink link) async {
+    if (!isInitialized) {
+      return;
+    }
     _db.execute(
       '''
       INSERT OR REPLACE INTO bangumi_links (
@@ -472,6 +489,12 @@ class BangumiManager with ChangeNotifier {
     );
     _links[_key(link.comicId, link.sourceKey)] = link;
     notifyListeners();
+  }
+
+  void _requireInitialized() {
+    if (!isInitialized) {
+      throw BangumiException('Bangumi storage is unavailable');
+    }
   }
 
   static String _key(String comicId, String sourceKey) =>

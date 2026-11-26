@@ -328,6 +328,20 @@ void main() {
       });
     }
 
+    test('rejects writes after the database is unavailable', () async {
+      manager.resetForTest();
+      await expectLater(
+        manager.linkAndSync(
+          comicId: '1',
+          sourceKey: 'local',
+          subject: subject,
+          type: BangumiCollectionType.wish,
+          epStatus: 0,
+        ),
+        throwsA(isA<BangumiException>()),
+      );
+    });
+
     test('does nothing while the master switch is off', () async {
       await link();
       appdata.settings['bangumiEnabled'] = false;
