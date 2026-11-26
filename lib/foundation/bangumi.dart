@@ -17,6 +17,12 @@ String bangumiErrorText(Object error) {
   if (text.contains('invalid or expired')) {
     return 'Bangumi token is invalid or expired'.tl;
   }
+  if (text.contains('permission denied')) {
+    return 'Bangumi permission denied'.tl;
+  }
+  if (text.contains('Not found on Bangumi')) {
+    return 'Not found on Bangumi'.tl;
+  }
   if (text.contains('Too many requests')) {
     return 'Too many requests. Please try again later.'.tl;
   }
