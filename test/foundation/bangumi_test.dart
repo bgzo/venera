@@ -384,6 +384,16 @@ void main() {
       expect(client.updates.single.epStatus, 0);
     });
 
+    test('does not resend unchanged fields on save', () async {
+      final saved = await link(type: BangumiCollectionType.doing, epStatus: 5);
+      await manager.updateLink(
+        saved,
+        type: BangumiCollectionType.doing,
+        epStatus: 5,
+      );
+      expect(client.updates, isEmpty);
+    });
+
     test('moves wish to doing and sends the new chapter', () async {
       await link();
       manager.autoSyncForTest(history(1));
@@ -581,6 +591,9 @@ class _FakeBangumiClient extends BangumiClient {
     int? epStatus,
     int? volStatus,
   }) async {
+    if (type == null && epStatus == null && volStatus == null) {
+      return;
+    }
     updates.add(_FakeUpdate(type, epStatus));
     final failure = error;
     if (failure != null) {

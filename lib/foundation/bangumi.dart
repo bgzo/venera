@@ -333,8 +333,8 @@ class BangumiManager with ChangeNotifier {
         : epStatus;
     await client.updateCollection(
       link.subjectId,
-      type: type,
-      epStatus: targetEp,
+      type: type != link.collectionType ? type : null,
+      epStatus: targetEp != link.epStatus ? targetEp : null,
     );
     final updated = link.copyWith(
       collectionType: type,
