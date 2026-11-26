@@ -607,7 +607,8 @@
     "Enable Bangumi sync": "开启 Bangumi 同步",
     "Link comics and sync reading progress with Bangumi.": "关联漫画并同步阅读进度到 Bangumi。",
     "Save a valid Access Token before enabling.": "请先填入并验证有效的 Access Token。",
-    "Enable Bangumi sync in Settings > Bangumi": "请先在 设置 > Bangumi 开启同步"
+    "Enable Bangumi sync in Settings > Bangumi": "请先在 设置 > Bangumi 开启同步",
+    "Unlink selected": "解除所选关联"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1217,6 +1218,7 @@
     "Enable Bangumi sync": "開啟 Bangumi 同步",
     "Link comics and sync reading progress with Bangumi.": "關聯漫畫並同步閱讀進度到 Bangumi。",
     "Save a valid Access Token before enabling.": "請先填入並驗證有效的 Access Token。",
-    "Enable Bangumi sync in Settings > Bangumi": "請先在 設定 > Bangumi 開啟同步"
+    "Enable Bangumi sync in Settings > Bangumi": "請先在 設定 > Bangumi 開啟同步",
+    "Unlink selected": "解除所選關聯"
   }
 }

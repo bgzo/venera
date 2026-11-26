@@ -85,6 +85,9 @@ class BangumiLink {
   String get displayName =>
       subjectNameCn.isNotEmpty ? subjectNameCn : subjectName;
 
+  /// Stable identity of this link inside the app.
+  String get key => '$sourceKey\u0000$comicId';
+
   BangumiLink copyWith({
     String? subjectName,
     String? subjectNameCn,

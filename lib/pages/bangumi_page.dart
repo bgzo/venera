@@ -719,6 +719,8 @@ class LinkedComicsPage extends StatefulWidget {
 class _LinkedComicsPageState extends State<LinkedComicsPage> {
   final _manager = BangumiManager();
 
+  final _selected = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -737,20 +739,83 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
     }
   }
 
+  void _toggle(String key) {
+    setState(() {
+      if (!_selected.remove(key)) {
+        _selected.add(key);
+      }
+    });
+  }
+
+  void _unlinkSelected() {
+    final links = _manager
+        .allLinks()
+        .where((link) => _selected.contains(link.key))
+        .toList();
+    if (links.isEmpty) {
+      return;
+    }
+    showConfirmDialog(
+      context: context,
+      title: 'Unlink Bangumi'.tl,
+      content:
+          'Only removes the local link. The Bangumi collection is not deleted.'
+              .tl,
+      confirmText: 'Unlink'.tl,
+      btnColor: Theme.of(context).colorScheme.error,
+      onConfirm: () async {
+        for (final link in links) {
+          await _manager.removeLink(link);
+        }
+        if (mounted) {
+          setState(() => _selected.clear());
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final links = _manager.allLinks();
+    final allSelected = links.isNotEmpty && _selected.length == links.length;
     return PopUpWidgetScaffold(
       title: 'Linked comics'.tl,
       titleIcon: const BangumiIcon(monochrome: true),
+      tailing: links.isEmpty
+          ? null
+          : [
+              IconButton(
+                tooltip: allSelected ? 'Deselect'.tl : 'Select All'.tl,
+                icon: Icon(allSelected ? Icons.deselect : Icons.select_all),
+                onPressed: () {
+                  setState(() {
+                    if (allSelected) {
+                      _selected.clear();
+                    } else {
+                      _selected.addAll(links.map((link) => link.key));
+                    }
+                  });
+                },
+              ),
+              if (_selected.isNotEmpty)
+                IconButton(
+                  tooltip: 'Unlink selected'.tl,
+                  icon: const Icon(Icons.link_off),
+                  onPressed: _unlinkSelected,
+                ),
+            ],
       body: links.isEmpty
           ? Center(child: Text('No linked comics'.tl))
           : ListView.builder(
               itemCount: links.length,
               itemBuilder: (context, index) {
                 final link = links[index];
+                final selected = _selected.contains(link.key);
                 return ListTile(
-                  leading: const BangumiIcon(size: 24, monochrome: true),
+                  leading: Checkbox(
+                    value: selected,
+                    onChanged: (_) => _toggle(link.key),
+                  ),
                   title: Text(link.displayName),
                   subtitle: Text(
                     [
@@ -762,23 +827,8 @@ class _LinkedComicsPageState extends State<LinkedComicsPage> {
                     '${link.epStatus}'
                     '${link.totalEps > 0 ? ' / ${link.totalEps}' : ''}',
                   ),
-                  onTap: () {
-                    context.to(
-                      () => BangumiSubjectPage(
-                        comic: Comic(
-                          link.displayName,
-                          '',
-                          link.comicId,
-                          null,
-                          null,
-                          '',
-                          link.sourceKey,
-                          null,
-                          null,
-                        ),
-                      ),
-                    );
-                  },
+                  selected: selected,
+                  onTap: () => _toggle(link.key),
                 );
               },
             ),
