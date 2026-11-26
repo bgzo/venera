@@ -603,7 +603,11 @@
     "Bangumi storage is unavailable. Restart the app and try again.": "Bangumi 本地数据不可用，请重启应用后重试。",
     "Bangumi permission denied": "Bangumi 权限不足",
     "Not found on Bangumi": "Bangumi 上未找到该条目",
-    "Automatic sync updates chapter progress only; volume progress is not synced.": "自动同步仅更新章节进度，不会同步卷进度。"
+    "Automatic sync updates chapter progress only; volume progress is not synced.": "自动同步仅更新章节进度，不会同步卷进度。",
+    "Enable Bangumi sync": "开启 Bangumi 同步",
+    "Link comics and sync reading progress with Bangumi.": "关联漫画并同步阅读进度到 Bangumi。",
+    "Save a valid Access Token before enabling.": "请先填入并验证有效的 Access Token。",
+    "Enable Bangumi sync in Settings > Bangumi": "请先在 设置 > Bangumi 开启同步"
   },
   "zh_TW": {
     "Home": "首頁",
@@ -1209,6 +1213,10 @@
     "Bangumi storage is unavailable. Restart the app and try again.": "Bangumi 本機資料無法使用，請重新啟動應用程式後再試。",
     "Bangumi permission denied": "Bangumi 權限不足",
     "Not found on Bangumi": "在 Bangumi 上找不到該條目",
-    "Automatic sync updates chapter progress only; volume progress is not synced.": "自動同步僅更新章節進度，不會同步卷進度。"
+    "Automatic sync updates chapter progress only; volume progress is not synced.": "自動同步僅更新章節進度，不會同步卷進度。",
+    "Enable Bangumi sync": "開啟 Bangumi 同步",
+    "Link comics and sync reading progress with Bangumi.": "關聯漫畫並同步閱讀進度到 Bangumi。",
+    "Save a valid Access Token before enabling.": "請先填入並驗證有效的 Access Token。",
+    "Enable Bangumi sync in Settings > Bangumi": "請先在 設定 > Bangumi 開啟同步"
   }
 }

@@ -376,7 +376,10 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
   Widget buildActions() {
     bool isMobile = context.width < changePoint;
     bool hasHistory = history != null && (history!.ep > 1 || history!.page > 1);
-    final bangumiLink = BangumiManager().linkOf(comic.id, comic.sourceKey);
+    final bangumiEnabled = BangumiManager().isEnabled;
+    final bangumiLink = bangumiEnabled
+        ? BangumiManager().linkOf(comic.id, comic.sourceKey)
+        : null;
     return SliverLazyToBoxAdapter(
       child: Column(
         children: [
@@ -449,13 +452,14 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
                 },
                 iconColor: context.useTextColor(Colors.indigo),
               ),
-              _ActionButton(
-                icon: const BangumiIcon(size: 20),
-                activeIcon: const BangumiIcon(size: 20),
-                isActive: bangumiLink != null,
-                text: bangumiLink?.collectionType.labelKey.tl ?? 'Bangumi'.tl,
-                onPressed: () => showBangumiDialog(comic.toComic()),
-              ),
+              if (bangumiEnabled)
+                _ActionButton(
+                  icon: const BangumiIcon(size: 20),
+                  activeIcon: const BangumiIcon(size: 20),
+                  isActive: bangumiLink != null,
+                  text: bangumiLink?.collectionType.labelKey.tl ?? 'Bangumi'.tl,
+                  onPressed: () => showBangumiDialog(comic.toComic()),
+                ),
               if (comicSource.commentsLoader != null)
                 _ActionButton(
                   icon: const Icon(Icons.comment),

@@ -171,6 +171,28 @@ class BangumiManager with ChangeNotifier {
   String get token =>
       ((appdata.implicitData['bangumiToken'] as String?) ?? '').trim();
 
+  /// Whether the Bangumi feature is enabled and usable.
+  bool get isEnabled =>
+      appdata.settings['bangumiEnabled'] == true && token.isNotEmpty;
+
+  Future<void> setEnabled(bool value) async {
+    if (appdata.settings['bangumiEnabled'] == value) {
+      return;
+    }
+    appdata.settings['bangumiEnabled'] = value;
+    await appdata.saveData();
+    notifyListeners();
+  }
+
+  /// Turns the master switch off when the token is no longer accepted, so an
+  /// expired token stops retrying on every chapter.
+  Future<void> disableForAuthError(Object error) async {
+    if (!error.toString().contains('invalid or expired')) {
+      return;
+    }
+    await setEnabled(false);
+  }
+
   Future<void> setToken(String value) async {
     var token = value.trim();
     if (token.toLowerCase().startsWith('bearer ')) {
@@ -285,7 +307,7 @@ class BangumiManager with ChangeNotifier {
     if (!isInitialized || _links.isEmpty) {
       return;
     }
-    if (appdata.settings['bangumiAutoSync'] != true || token.isEmpty) {
+    if (!isEnabled || appdata.settings['bangumiAutoSync'] != true) {
       return;
     }
     for (final history in HistoryManager().cachedHistories.values.toList()) {
@@ -357,6 +379,8 @@ class BangumiManager with ChangeNotifier {
         'Failed to sync progress for ${link.comicId}: $e',
         s,
       );
+      // An expired token would otherwise fail on every chapter.
+      await disableForAuthError(e);
       onAutoSyncFailed?.call(link, ep, e);
     } finally {
       _syncing.remove(key);

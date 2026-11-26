@@ -168,11 +168,12 @@ class ComicTile extends StatelessWidget {
           addFavorite([comic]);
         },
       ),
-      MenuEntry(
-        icon: Icons.sync_alt,
-        text: 'Bangumi'.tl,
-        onClick: () => showBangumiDialog(comic),
-      ),
+      if (BangumiManager().isEnabled)
+        MenuEntry(
+          icon: Icons.sync_alt,
+          text: 'Bangumi'.tl,
+          onClick: () => showBangumiDialog(comic),
+        ),
       MenuEntry(
         icon: Icons.watch_later_outlined,
         text:
@@ -223,7 +224,9 @@ class ComicTile extends StatelessWidget {
     if (history?.page == 0) {
       history!.page = 1;
     }
-    final bangumi = appdata.settings['showBangumiStatusOnTile'] == true
+    final bangumi =
+        BangumiManager().isEnabled &&
+            appdata.settings['showBangumiStatusOnTile'] == true
         ? BangumiManager().linkOf(comic.id, comic.sourceKey)
         : null;
 

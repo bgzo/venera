@@ -19,6 +19,7 @@ class _BangumiSettingsState extends State<BangumiSettings> {
   void initState() {
     super.initState();
     _tokenController = TextEditingController(text: BangumiManager().token);
+    BangumiManager().addListener(_onManagerChanged);
     if (_tokenController.text.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -28,8 +29,15 @@ class _BangumiSettingsState extends State<BangumiSettings> {
     }
   }
 
+  void _onManagerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    BangumiManager().removeListener(_onManagerChanged);
     _tokenController.dispose();
     super.dispose();
   }
@@ -50,6 +58,8 @@ class _BangumiSettingsState extends State<BangumiSettings> {
         _account = null;
         _error = null;
       });
+      await _applyEnabled(false);
+      if (!mounted) return;
       if (!silent) {
         context.showMessage(message: 'Token cleared'.tl);
       }
@@ -70,6 +80,8 @@ class _BangumiSettingsState extends State<BangumiSettings> {
       }
     } catch (e) {
       if (!mounted) return;
+      await BangumiManager().disableForAuthError(e);
+      if (!mounted) return;
       setState(() {
         _account = null;
         _error = bangumiErrorText(e);
@@ -84,8 +96,15 @@ class _BangumiSettingsState extends State<BangumiSettings> {
     }
   }
 
+  Future<void> _applyEnabled(bool value) async {
+    await BangumiManager().setEnabled(value);
+    if (!mounted) return;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    final enabled = appdata.settings['bangumiEnabled'] == true;
     return SmoothCustomScrollView(
       slivers: [
         SliverAppbar(
@@ -224,6 +243,23 @@ class _BangumiSettingsState extends State<BangumiSettings> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.sync),
+                title: Text('Enable Bangumi sync'.tl),
+                subtitle: Text(
+                  enabled
+                      ? 'Link comics and sync reading progress with Bangumi.'.tl
+                      : 'Save a valid Access Token before enabling.'.tl,
+                ),
+                trailing: Switch(
+                  value: enabled,
+                  onChanged: enabled || (_account != null && !_testing)
+                      ? (value) => _applyEnabled(value)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.link),
                 title: Text('Linked comics'.tl),
                 subtitle: Text(
@@ -234,24 +270,27 @@ class _BangumiSettingsState extends State<BangumiSettings> {
                   showPopUpWidget(context, const LinkedComicsPage());
                 },
               ),
-              const Divider(height: 32),
-              _SwitchSetting(
-                title: 'Auto sync reading progress'.tl,
-                settingKey: 'bangumiAutoSync',
-                subtitle:
-                    'Update Bangumi ep_status when a new chapter is read.'.tl,
-              ),
-              _SwitchSetting(
-                title: 'Sync notification'.tl,
-                settingKey: 'bangumiSyncReminder',
-                subtitle:
-                    'Show a notification after an automatic progress sync.'.tl,
-              ),
-              _SwitchSetting(
-                title: 'Show Bangumi status on comic tile'.tl,
-                settingKey: 'showBangumiStatusOnTile',
-                onChanged: App.forceRebuild,
-              ),
+              if (enabled) ...[
+                const Divider(height: 32),
+                _SwitchSetting(
+                  title: 'Auto sync reading progress'.tl,
+                  settingKey: 'bangumiAutoSync',
+                  subtitle:
+                      'Update Bangumi ep_status when a new chapter is read.'.tl,
+                ),
+                _SwitchSetting(
+                  title: 'Sync notification'.tl,
+                  settingKey: 'bangumiSyncReminder',
+                  subtitle:
+                      'Show a notification after an automatic progress sync.'
+                          .tl,
+                ),
+                _SwitchSetting(
+                  title: 'Show Bangumi status on comic tile'.tl,
+                  settingKey: 'showBangumiStatusOnTile',
+                  onChanged: App.forceRebuild,
+                ),
+              ],
               const SizedBox(height: 32),
             ],
           ),

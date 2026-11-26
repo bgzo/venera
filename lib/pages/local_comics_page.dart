@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:venera/components/components.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
+import 'package:venera/foundation/bangumi.dart';
 import 'package:venera/foundation/comic_type.dart';
 import 'package:venera/foundation/local.dart';
 import 'package:venera/pages/local_reader.dart';
@@ -166,7 +167,7 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
               );
             },
           ),
-        if (selectedComics.length == 1)
+        if (selectedComics.length == 1 && BangumiManager().isEnabled)
           MenuEntry(
             icon: Icons.sync_alt,
             text: 'Bangumi'.tl,
@@ -273,7 +274,7 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
         tooltip: "Invert Selection".tl,
         onPressed: invertSelection,
       ),
-      if (selectedComics.length == 1)
+      if (selectedComics.length == 1 && BangumiManager().isEnabled)
         IconButton(
           icon: const Icon(Icons.sync_alt),
           tooltip: 'Bangumi'.tl,
@@ -418,11 +419,12 @@ class _LocalComicsPageState extends State<LocalComicsPage> {
                     openComicFolder(c as LocalComic);
                   },
                 ),
-                MenuEntry(
-                  icon: Icons.sync_alt,
-                  text: 'Bangumi'.tl,
-                  onClick: () => showBangumiDialog(c),
-                ),
+                if (BangumiManager().isEnabled)
+                  MenuEntry(
+                    icon: Icons.sync_alt,
+                    text: 'Bangumi'.tl,
+                    onClick: () => showBangumiDialog(c),
+                  ),
                 MenuEntry(
                   icon: Icons.delete,
                   text: "Delete".tl,

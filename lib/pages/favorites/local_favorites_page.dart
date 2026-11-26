@@ -548,7 +548,7 @@ class _LocalFavoritesPageState extends State<_LocalFavoritesPage> {
               "Selected @c comics".tlParams({"c": selectedComics.length}),
             ),
             actions: [
-              if (selectedComics.length == 1)
+              if (selectedComics.length == 1 && BangumiManager().isEnabled)
                 IconButton(
                   icon: const Icon(Icons.sync_alt),
                   tooltip: 'Bangumi'.tl,
@@ -635,7 +635,7 @@ class _LocalFavoritesPageState extends State<_LocalFavoritesPage> {
                         context.showMessage(message: "Copied".tl);
                       },
                     ),
-                  if (selectedComics.length == 1)
+                  if (selectedComics.length == 1 && BangumiManager().isEnabled)
                     MenuEntry(
                       icon: Icons.sync_alt,
                       text: 'Bangumi'.tl,
@@ -774,11 +774,12 @@ class _LocalFavoritesPageState extends State<_LocalFavoritesPage> {
                     context.showMessage(message: "Download started".tl);
                   },
                 ),
-                MenuEntry(
-                  icon: Icons.sync_alt,
-                  text: 'Bangumi'.tl,
-                  onClick: () => showBangumiDialog(c),
-                ),
+                if (BangumiManager().isEnabled)
+                  MenuEntry(
+                    icon: Icons.sync_alt,
+                    text: 'Bangumi'.tl,
+                    onClick: () => showBangumiDialog(c),
+                  ),
                 if (appdata.settings["onClickFavorite"] == "viewDetail")
                   MenuEntry(
                     icon: Icons.menu_book_outlined,

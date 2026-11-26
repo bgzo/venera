@@ -321,11 +321,12 @@ abstract mixin class _ComicPageActions {
   void showMoreActions() {
     var context = App.rootContext;
     showMenuX(context, Offset(context.width - 16, context.padding.top), [
-      MenuEntry(
-        icon: Icons.sync_alt,
-        text: 'Bangumi'.tl,
-        onClick: () => showBangumiDialog(comic.toComic()),
-      ),
+      if (BangumiManager().isEnabled)
+        MenuEntry(
+          icon: Icons.sync_alt,
+          text: 'Bangumi'.tl,
+          onClick: () => showBangumiDialog(comic.toComic()),
+        ),
       MenuEntry(
         icon: Icons.copy,
         text: "Copy Title".tl,

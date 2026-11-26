@@ -230,6 +230,7 @@ class Settings with ChangeNotifier {
     'searchSources': null,
     'showFavoriteStatusOnTile': true,
     'showHistoryStatusOnTile': false,
+    'bangumiEnabled': false,
     'bangumiAutoSync': true,
     'bangumiSyncReminder': false,
     'showBangumiStatusOnTile': true,

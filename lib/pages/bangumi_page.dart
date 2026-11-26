@@ -23,6 +23,12 @@ Future<void> showBangumiDialog(Comic comic) async {
     await _showTokenSetup();
     return;
   }
+  if (!manager.isEnabled) {
+    App.rootContext.showMessage(
+      message: 'Enable Bangumi sync in Settings > Bangumi'.tl,
+    );
+    return;
+  }
   final link = manager.linkOf(comic.id, comic.sourceKey);
   await showPopUpWidget(
     App.rootContext,
