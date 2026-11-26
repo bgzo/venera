@@ -543,30 +543,32 @@ void main() {
 
     test('turns the switch off and reports an auth failure', () async {
       await link();
-      Object? failure;
-      manager.onAutoSyncFailed = (_, _, error) => failure = error;
+      final failure = Completer<Object>();
+      manager.onAutoSyncFailed = (_, _, error) => failure.complete(error);
       client.error = BangumiException(
         'Bangumi token is invalid or expired',
         kind: BangumiErrorKind.auth,
       );
 
       manager.autoSyncForTest(history(1));
-      await pumpEventQueue();
-
-      expect(failure, isA<BangumiException>());
+      expect(
+        await failure.future.timeout(const Duration(seconds: 5)),
+        isA<BangumiException>(),
+      );
       expect(appdata.settings['bangumiEnabled'], isFalse);
     });
 
     test('keeps the switch on for a transient failure', () async {
       await link();
-      Object? failure;
-      manager.onAutoSyncFailed = (_, _, error) => failure = error;
+      final failure = Completer<Object>();
+      manager.onAutoSyncFailed = (_, _, error) => failure.complete(error);
       client.error = BangumiException('network down');
 
       manager.autoSyncForTest(history(1));
-      await pumpEventQueue();
-
-      expect(failure, isNotNull);
+      expect(
+        await failure.future.timeout(const Duration(seconds: 5)),
+        isA<BangumiException>(),
+      );
       expect(appdata.settings['bangumiEnabled'], isTrue);
     });
 
