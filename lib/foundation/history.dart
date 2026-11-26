@@ -436,7 +436,7 @@ class HistoryManager with ChangeNotifier {
     if (!_cachedHistoryIds!.contains('${id}_${type.value}')) {
       return null;
     }
-    if (cachedHistories.containsKey(id)) {
+    if (cachedHistories.containsKey(id) && cachedHistories[id]!.type == type) {
       return cachedHistories[id];
     }
 
