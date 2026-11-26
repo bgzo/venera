@@ -281,6 +281,20 @@ void main() {
       seriesStatus: BangumiSeriesStatus.ongoing,
     );
 
+    const otherSubject = BangumiSubject(
+      id: 3,
+      name: 'Other',
+      nameCn: '',
+      platform: '漫画',
+      eps: 10,
+      volumes: 0,
+      series: true,
+      date: '',
+      cover: '',
+      coverLarge: '',
+      seriesStatus: BangumiSeriesStatus.ongoing,
+    );
+
     setUp(() {
       manager.resetForTest();
       db = sqlite3.openInMemory();
@@ -483,6 +497,28 @@ void main() {
       expect(client.updates.last.type, isNull);
       expect(client.updates.last.epStatus, 10);
       expect(manager.linkOf('1', 'local')!.epStatus, 10);
+    });
+
+    test('drops a stale write after the comic is relinked', () async {
+      final first = await link();
+      final blocker = Completer<void>();
+      client.blocker = blocker;
+      manager.autoSyncForTest(history(1));
+      expect(client.updates, hasLength(1));
+
+      client.blocker = null;
+      await manager.removeLink(first);
+      await manager.linkAndSync(
+        comicId: '1',
+        sourceKey: 'local',
+        subject: otherSubject,
+        type: BangumiCollectionType.wish,
+        epStatus: 0,
+      );
+      blocker.complete();
+      await pumpEventQueue();
+
+      expect(manager.linkOf('1', 'local')!.subjectId, 3);
     });
 
     test('turns the switch off and reports an auth failure', () async {

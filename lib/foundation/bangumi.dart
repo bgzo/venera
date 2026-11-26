@@ -448,6 +448,9 @@ class BangumiManager with ChangeNotifier {
       if (latest == null) {
         return;
       }
+      if (latest.subjectId != link.subjectId) {
+        return;
+      }
       final typeChanged = latest.collectionType != link.collectionType;
       final progressChanged = latest.epStatus != link.epStatus;
       if (typeChanged || progressChanged) {
