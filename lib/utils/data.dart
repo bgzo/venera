@@ -56,15 +56,14 @@ Future<File> exportAppData([bool sync = false]) async {
   _flushDb(FilePath.join(dataPath, "cookie.db"));
   _flushDb(FilePath.join(dataPath, "bangumi.db"));
 
-  var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  var cacheFilePath = FilePath.join(App.cachePath, '$time.venera');
+  // Unique per call so a concurrent manual export cannot delete this archive
+  // while the zip isolate is still writing it.
+  final stamp = DateTime.now().microsecondsSinceEpoch;
+  var cacheFilePath = FilePath.join(App.cachePath, '$stamp.venera');
   var cacheFile = File(cacheFilePath);
-  if (await cacheFile.exists()) {
-    await cacheFile.delete();
-  }
   // The token and the comic-to-subject links live outside appdata.json, so
   // they need their own entries in the archive.
-  var bangumiFile = File(FilePath.join(App.cachePath, '$time.bangumi.json'));
+  var bangumiFile = File(FilePath.join(App.cachePath, '$stamp.bangumi.json'));
   await bangumiFile.writeAsString(
     jsonEncode({
       'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
