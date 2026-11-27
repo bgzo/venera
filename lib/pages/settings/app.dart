@@ -189,8 +189,8 @@ class _AppSettingsState extends State<AppSettings> {
           title: "Auto Export".tl,
           settingKey: "autoExportOnLaunch",
           subtitle:
-              "Cold-start backup to Venera/Backups; keeps the newest 10. Includes login cookies and tokens."
-                  .tl,
+              "Cold-start backup to Venera/Backups; keeps the newest @n. Includes login cookies and tokens."
+                  .tlParams({'n': autoExportKeepCount}),
         ).toSliver(),
         SelectSetting(
           title: "Chapter Export Naming Format".tl,
