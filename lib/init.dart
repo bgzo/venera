@@ -38,7 +38,7 @@ extension _FutureInit<T> on Future<T> {
   }
 }
 
-Future<void> init() async {
+Future<void> init({bool autoExport = true}) async {
   await App.init().wait();
   BangumiManager().onAutoSynced = (link, ep) {
     final context = App.rootNavigatorKey.currentContext;
@@ -84,8 +84,8 @@ Future<void> init() async {
   }
   CacheManager().setLimitSize(appdata.settings['cacheSize']);
   _checkOldConfigs();
-  // Cold-start only: init() runs once per process, not on app resume.
-  if (appdata.settings['autoExportOnLaunch'] == true) {
+  // GUI cold start only: headless CLI calls init() too, and must not back up.
+  if (autoExport && appdata.settings['autoExportOnLaunch'] == true) {
     unawaited(() async {
       try {
         await autoExportAppDataOnLaunch();
