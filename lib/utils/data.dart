@@ -113,6 +113,9 @@ const autoExportKeepCount = 10;
 
 /// Export app data into a user-visible folder on every cold start.
 ///
+/// Runs alongside the WebDAV initial pull, so this snapshot may contain the
+/// settings from before that pull completes.
+///
 /// iOS already exposes `Documents` as `On My iPhone > Venera`; other platforms
 /// use a `Venera/Backups` folder under Documents.
 Future<void> autoExportAppDataOnLaunch() async {
