@@ -82,6 +82,14 @@ Future<File> exportAppData([bool sync = false]) async {
     }),
   );
   var bangumiTokenPath = bangumiFile.path;
+  // The startup WebDAV pull can rewrite appdata.json, so snapshot it from
+  // memory instead of zipping a file that may be half-written.
+  final appdataPath = sync
+      ? FilePath.join(dataPath, "syncdata.json")
+      : FilePath.join(tempDir.path, '$stamp.appdata.json');
+  if (!sync) {
+    await File(appdataPath).writeAsString(jsonEncode(appdata.toJson()));
+  }
   try {
     await Isolate.run(() {
       // Flush WAL data into main .db files before copying. This runs in the
@@ -99,10 +107,7 @@ Future<File> exportAppData([bool sync = false]) async {
       try {
         var historyFile = FilePath.join(dataPath, "history.db");
         var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
-        var appdata = FilePath.join(
-          dataPath,
-          sync ? "syncdata.json" : "appdata.json",
-        );
+        var appdata = appdataPath;
         var cookies = FilePath.join(dataPath, "cookie.db");
         zipFile.addFile("history.db", historyFile);
         zipFile.addFile("local_favorite.db", localFavoriteFile);
@@ -135,6 +140,7 @@ Future<File> exportAppData([bool sync = false]) async {
     rethrow;
   } finally {
     bangumiFile.deleteIgnoreError();
+    if (!sync) File(appdataPath).deleteIgnoreError();
   }
   return cacheFile;
 }
