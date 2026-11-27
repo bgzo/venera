@@ -134,7 +134,7 @@ Future<void> autoExportAppDataOnLaunch() async {
   await dir.create(recursive: true);
 
   final export = await exportAppData(false);
-  final stamp = _backupTimestamp(DateTime.now());
+  final stamp = autoExportTimestamp(DateTime.now());
   final target = File(FilePath.join(dir.path, 'data_$stamp.venera'));
   final temp = File('${target.path}.tmp');
   try {
@@ -172,7 +172,8 @@ Future<void> pruneAutoExportBackups(Directory dir) async {
   }
 }
 
-String _backupTimestamp(DateTime time) {
+/// Timestamp used in auto export file names, in sortable local time.
+String autoExportTimestamp(DateTime time) {
   String two(int value) => value.toString().padLeft(2, '0');
   return '${time.year}${two(time.month)}${two(time.day)}_'
       '${two(time.hour)}${two(time.minute)}${two(time.second)}';

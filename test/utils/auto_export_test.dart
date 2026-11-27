@@ -37,4 +37,15 @@ void main() {
     expect(names, contains('data_20260111_000000.venera'));
     expect(names, contains('data_20260112_000000.venera'));
   });
+
+  test('autoExportTimestamp zero-pads every field', () {
+    expect(
+      autoExportTimestamp(DateTime(2026, 3, 1, 5, 4, 3)),
+      '20260301_050403',
+    );
+    expect(
+      autoExportTimestamp(DateTime(2026, 12, 31, 23, 59, 59)),
+      '20261231_235959',
+    );
+  });
 }
