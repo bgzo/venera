@@ -49,6 +49,20 @@ void main() {
     );
   });
 
+  test('pruneExportTempFiles removes only stale files', () async {
+    final dir = Directory.systemTemp.createTempSync('venera_export_temp');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final old = File('${dir.path}/old.venera')
+      ..writeAsStringSync('old')
+      ..setLastModifiedSync(DateTime.now().subtract(const Duration(days: 2)));
+    final fresh = File('${dir.path}/fresh.venera')..writeAsStringSync('fresh');
+
+    await pruneExportTempFiles(dir);
+
+    expect(old.existsSync(), isFalse);
+    expect(fresh.existsSync(), isTrue);
+  });
+
   test('saveAutoExportArchive writes a timestamped copy', () async {
     final dir = Directory.systemTemp.createTempSync('venera_auto_export');
     addTearDown(() => dir.deleteSync(recursive: true));

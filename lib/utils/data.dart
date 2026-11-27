@@ -44,21 +44,38 @@ void _cleanWalFiles(String dbPath) {
   }
 }
 
+/// Remove export temp files left by a killed process.
+///
+/// Recent files are kept in case a concurrent export is still writing them.
+Future<void> pruneExportTempFiles(Directory dir) async {
+  final cutoff = DateTime.now().subtract(const Duration(days: 1));
+  for (final file in dir.listSync().whereType<File>()) {
+    if (file.lastModifiedSync().isBefore(cutoff)) {
+      await file.deleteIgnoreError();
+    }
+  }
+}
+
 /// [sync] selects the WebDAV-shaped `syncdata.json`; the Bangumi token is only
 /// archived for a full local backup so it never leaves the device via sync.
 Future<File> exportAppData([bool sync = false]) async {
   var dataPath = App.dataPath;
 
+  // Build the zip outside the cache directory: CacheManager scans and deletes
+  // unmanaged cache files at startup and on cache clear, which could remove an
+  // archive that is still being written.
+  var tempDir = Directory(FilePath.join(dataPath, 'export_temp'));
+  await tempDir.create(recursive: true);
+  await pruneExportTempFiles(tempDir);
+
   // Unique per call so a concurrent manual export cannot delete this archive
   // while the zip isolate is still writing it.
   final stamp = DateTime.now().microsecondsSinceEpoch;
-  var cacheFilePath = FilePath.join(App.cachePath, '$stamp.venera');
+  var cacheFilePath = FilePath.join(tempDir.path, '$stamp.venera');
   var cacheFile = File(cacheFilePath);
-  // shortcut: a process killed mid-zip leaves this archive in the cache root;
-  // CacheManager treats it as unmanaged and deletes it on the next scan.
   // The token and the comic-to-subject links live outside appdata.json, so
   // they need their own entries in the archive.
-  var bangumiFile = File(FilePath.join(App.cachePath, '$stamp.bangumi.json'));
+  var bangumiFile = File(FilePath.join(tempDir.path, '$stamp.bangumi.json'));
   await bangumiFile.writeAsString(
     jsonEncode({
       'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
