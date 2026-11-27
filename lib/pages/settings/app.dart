@@ -189,7 +189,7 @@ class _AppSettingsState extends State<AppSettings> {
           title: "Auto Export".tl,
           settingKey: "autoExportOnLaunch",
           subtitle: App.isAndroid
-              ? "On Android, backups stay in the app-private Documents folder and are removed with the app."
+              ? "On Android, backups stay in the app-private Documents folder and are removed with the app. Includes login cookies and tokens."
                     .tl
               : "Cold-start backup to Venera/Backups; keeps the newest @n. Includes login cookies and tokens."
                     .tlParams({'n': autoExportKeepCount}),
