@@ -77,34 +77,38 @@ Future<File> exportAppData([bool sync = false]) async {
         _flushDb(FilePath.join(dataPath, name));
       }
       var zipFile = ZipFile.open(cacheFilePath);
-      var historyFile = FilePath.join(dataPath, "history.db");
-      var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
-      var appdata = FilePath.join(
-        dataPath,
-        sync ? "syncdata.json" : "appdata.json",
-      );
-      var cookies = FilePath.join(dataPath, "cookie.db");
-      zipFile.addFile("history.db", historyFile);
-      zipFile.addFile("local_favorite.db", localFavoriteFile);
-      zipFile.addFile("appdata.json", appdata);
-      zipFile.addFile("cookie.db", cookies);
-      var readLaterFile = FilePath.join(dataPath, "read_later.db");
-      zipFile.addFile("read_later.db", readLaterFile);
-      var bangumiDb = FilePath.join(dataPath, "bangumi.db");
-      if (File(bangumiDb).existsSync()) {
-        zipFile.addFile("bangumi.db", bangumiDb);
-      }
-      if (!sync) {
-        zipFile.addFile("bangumi.json", bangumiTokenPath);
-      }
-      for (var file in Directory(
-        FilePath.join(dataPath, "comic_source"),
-      ).listSync()) {
-        if (file is File) {
-          zipFile.addFile("comic_source/${file.name}", file.path);
+      try {
+        var historyFile = FilePath.join(dataPath, "history.db");
+        var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
+        var appdata = FilePath.join(
+          dataPath,
+          sync ? "syncdata.json" : "appdata.json",
+        );
+        var cookies = FilePath.join(dataPath, "cookie.db");
+        zipFile.addFile("history.db", historyFile);
+        zipFile.addFile("local_favorite.db", localFavoriteFile);
+        zipFile.addFile("appdata.json", appdata);
+        zipFile.addFile("cookie.db", cookies);
+        var readLaterFile = FilePath.join(dataPath, "read_later.db");
+        zipFile.addFile("read_later.db", readLaterFile);
+        var bangumiDb = FilePath.join(dataPath, "bangumi.db");
+        if (File(bangumiDb).existsSync()) {
+          zipFile.addFile("bangumi.db", bangumiDb);
         }
+        if (!sync) {
+          zipFile.addFile("bangumi.json", bangumiTokenPath);
+        }
+        for (var file in Directory(
+          FilePath.join(dataPath, "comic_source"),
+        ).listSync()) {
+          if (file is File) {
+            zipFile.addFile("comic_source/${file.name}", file.path);
+          }
+        }
+      } finally {
+        // Release the native handle so the partial archive can be deleted.
+        zipFile.close();
       }
-      zipFile.close();
     });
   } catch (_) {
     // The zip isolate may have created a partial archive before failing.
