@@ -194,6 +194,9 @@ Future<void> pruneAutoExportBackups(Directory dir) async {
 }
 
 /// Timestamp used in auto export file names, in sortable local time.
+///
+/// shortcut: a DST fall-back hour can repeat a name and overwrite one backup,
+/// switch to UTC if that matters.
 String autoExportTimestamp(DateTime time) {
   String two(int value) => value.toString().padLeft(2, '0');
   return '${time.year}${two(time.month)}${two(time.day)}_'
