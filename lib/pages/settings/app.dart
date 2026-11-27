@@ -180,7 +180,11 @@ class _AppSettingsState extends State<AppSettings> {
           callback: () async {
             var controller = showLoadingDialog(context);
             var file = await exportAppData(false);
-            await saveFile(filename: "data.venera", file: file);
+            try {
+              await saveFile(filename: "data.venera", file: file);
+            } finally {
+              await file.deleteIgnoreError();
+            }
             controller.close();
           },
           actionTitle: 'Export'.tl,
