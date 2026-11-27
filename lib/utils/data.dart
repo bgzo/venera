@@ -142,6 +142,10 @@ Future<void> autoExportAppDataOnLaunch() async {
 }
 
 /// Keep the newest [autoExportKeepCount] `data_*.venera` files in [dir].
+///
+/// Ordering uses the timestamp in the file name, not the file mtime: copied
+/// or restored files get a fresh mtime that no longer matches their backup
+/// time, which would otherwise make pruning delete the wrong files.
 Future<void> pruneAutoExportBackups(Directory dir) async {
   final files =
       dir
@@ -152,7 +156,7 @@ Future<void> pruneAutoExportBackups(Directory dir) async {
                 file.name.startsWith('data_') && file.name.endsWith('.venera'),
           )
           .toList()
-        ..sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
+        ..sort((a, b) => a.name.compareTo(b.name));
   if (files.length <= autoExportKeepCount) return;
   for (final file in files.take(files.length - autoExportKeepCount)) {
     await file.deleteIgnoreError();
