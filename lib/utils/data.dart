@@ -54,6 +54,8 @@ Future<File> exportAppData([bool sync = false]) async {
   final stamp = DateTime.now().microsecondsSinceEpoch;
   var cacheFilePath = FilePath.join(App.cachePath, '$stamp.venera');
   var cacheFile = File(cacheFilePath);
+  // shortcut: a process killed mid-zip leaves this archive in the cache root;
+  // CacheManager treats it as unmanaged and deletes it on the next scan.
   // The token and the comic-to-subject links live outside appdata.json, so
   // they need their own entries in the archive.
   var bangumiFile = File(FilePath.join(App.cachePath, '$stamp.bangumi.json'));
