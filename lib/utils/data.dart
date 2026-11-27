@@ -166,11 +166,22 @@ Future<void> autoExportAppDataOnLaunch() async {
   // Save pending settings before reading appdata.json; skip the WebDAV push.
   await appdata.saveData(false);
 
-  final export = await exportAppData(false);
+  await autoExportInto(dir, () => exportAppData(false));
+}
+
+/// Copy the archive produced by [export] into [dir], then prune old backups.
+///
+/// The source archive is deleted whether the copy succeeds or not; pruning
+/// only runs after a successful copy.
+Future<void> autoExportInto(
+  Directory dir,
+  Future<File> Function() export,
+) async {
+  final archive = await export();
   try {
-    await saveAutoExportArchive(export, dir, DateTime.now());
+    await saveAutoExportArchive(archive, dir, DateTime.now());
   } finally {
-    await export.deleteIgnoreError();
+    await archive.deleteIgnoreError();
   }
   await pruneAutoExportBackups(dir);
 }

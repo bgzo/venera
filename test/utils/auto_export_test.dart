@@ -63,6 +63,46 @@ void main() {
     expect(fresh.existsSync(), isTrue);
   });
 
+  test('autoExportInto saves, deletes the source, and prunes', () async {
+    final dir = Directory.systemTemp.createTempSync('venera_auto_export');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    for (var i = 0; i < 11; i++) {
+      final day = (i + 1).toString().padLeft(2, '0');
+      File(
+        '${dir.path}/data_200001${day}_000000.venera',
+      ).writeAsStringSync('old $i');
+    }
+    final source = File('${dir.path}/source.venera')
+      ..writeAsStringSync('payload');
+
+    await autoExportInto(dir, () async => source);
+
+    expect(source.existsSync(), isFalse);
+    final archives = dir
+        .listSync()
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.venera'))
+        .toList();
+    expect(archives, hasLength(10));
+    expect(
+      File('${dir.path}/data_20000101_000000.venera').existsSync(),
+      isFalse,
+    );
+    expect(
+      File('${dir.path}/data_20000102_000000.venera').existsSync(),
+      isFalse,
+    );
+    expect(
+      File('${dir.path}/data_20000111_000000.venera').existsSync(),
+      isTrue,
+    );
+    final newest = archives.singleWhere(
+      (file) =>
+          !file.path.split(Platform.pathSeparator).last.startsWith('data_2000'),
+    );
+    expect(newest.readAsStringSync(), 'payload');
+  });
+
   test('saveAutoExportArchive writes a timestamped copy', () async {
     final dir = Directory.systemTemp.createTempSync('venera_auto_export');
     addTearDown(() => dir.deleteSync(recursive: true));
