@@ -48,4 +48,34 @@ void main() {
       '20261231_235959',
     );
   });
+
+  test('saveAutoExportArchive writes a timestamped copy', () async {
+    final dir = Directory.systemTemp.createTempSync('venera_auto_export');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final source = File('${dir.path}/source.venera')
+      ..writeAsStringSync('payload');
+
+    await saveAutoExportArchive(source, dir, DateTime(2026, 3, 1, 5, 4, 3));
+
+    final target = File('${dir.path}/data_20260301_050403.venera');
+    expect(target.readAsStringSync(), 'payload');
+    expect(File('${target.path}.tmp').existsSync(), isFalse);
+  });
+
+  test('saveAutoExportArchive removes temp file when copy fails', () async {
+    final dir = Directory.systemTemp.createTempSync('venera_auto_export');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final temp = File('${dir.path}/data_20260301_050403.venera.tmp')
+      ..writeAsStringSync('partial');
+
+    await expectLater(
+      saveAutoExportArchive(
+        File('${dir.path}/missing.venera'),
+        dir,
+        DateTime(2026, 3, 1, 5, 4, 3),
+      ),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(temp.existsSync(), isFalse);
+  });
 }

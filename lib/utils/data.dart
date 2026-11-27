@@ -138,18 +138,31 @@ Future<void> autoExportAppDataOnLaunch() async {
   await appdata.saveData(false);
 
   final export = await exportAppData(false);
-  final stamp = autoExportTimestamp(DateTime.now());
-  final target = File(FilePath.join(dir.path, 'data_$stamp.venera'));
+  try {
+    await saveAutoExportArchive(export, dir, DateTime.now());
+  } finally {
+    await export.deleteIgnoreError();
+  }
+  await pruneAutoExportBackups(dir);
+}
+
+/// Copy [source] into [dir] as a timestamped archive via a temp file.
+Future<void> saveAutoExportArchive(
+  File source,
+  Directory dir,
+  DateTime time,
+) async {
+  final target = File(
+    FilePath.join(dir.path, 'data_${autoExportTimestamp(time)}.venera'),
+  );
   final temp = File('${target.path}.tmp');
   try {
-    await export.copy(temp.path);
+    await source.copy(temp.path);
     await target.deleteIgnoreError();
     await temp.rename(target.path);
   } finally {
     await temp.deleteIgnoreError();
-    await export.deleteIgnoreError();
   }
-  await pruneAutoExportBackups(dir);
 }
 
 /// Keep the newest [autoExportKeepCount] `data_*.venera` files in [dir].
