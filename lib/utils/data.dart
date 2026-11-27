@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
@@ -106,6 +107,62 @@ Future<File> exportAppData([bool sync = false]) async {
     bangumiFile.deleteIgnoreError();
   }
   return cacheFile;
+}
+
+/// Number of automatic launch backups kept in the export folder.
+const autoExportKeepCount = 10;
+
+/// Export app data into a user-visible folder on every cold start.
+///
+/// iOS already exposes `Documents` as `On My iPhone > Venera`; other platforms
+/// use a `Venera/Backups` folder under Documents.
+Future<void> autoExportAppDataOnLaunch() async {
+  // Wait for in-flight setting writes so appdata.json is not read mid-write.
+  await appdata.saveData();
+
+  final documents = await getApplicationDocumentsDirectory();
+  final root = App.isIOS
+      ? documents.path
+      : FilePath.join(documents.path, 'Venera');
+  final dir = Directory(FilePath.join(root, 'Backups'));
+  await dir.create(recursive: true);
+
+  final export = await exportAppData(false);
+  try {
+    final stamp = _backupTimestamp(DateTime.now());
+    final target = File(FilePath.join(dir.path, 'data_$stamp.venera'));
+    final temp = File('${target.path}.tmp');
+    await export.copy(temp.path);
+    await target.deleteIgnoreError();
+    await temp.rename(target.path);
+  } finally {
+    await export.deleteIgnoreError();
+  }
+  await pruneAutoExportBackups(dir);
+}
+
+/// Keep the newest [autoExportKeepCount] `data_*.venera` files in [dir].
+Future<void> pruneAutoExportBackups(Directory dir) async {
+  final files =
+      dir
+          .listSync()
+          .whereType<File>()
+          .where(
+            (file) =>
+                file.name.startsWith('data_') && file.name.endsWith('.venera'),
+          )
+          .toList()
+        ..sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
+  if (files.length <= autoExportKeepCount) return;
+  for (final file in files.take(files.length - autoExportKeepCount)) {
+    await file.deleteIgnoreError();
+  }
+}
+
+String _backupTimestamp(DateTime time) {
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${time.year}${two(time.month)}${two(time.day)}_'
+      '${two(time.hour)}${two(time.minute)}${two(time.second)}';
 }
 
 Future<void> importAppData(

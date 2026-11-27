@@ -18,6 +18,7 @@ import 'package:venera/pages/settings/settings_page.dart';
 import 'package:venera/super_resolution/super_resolution_service.dart';
 import 'package:venera/utils/app_links.dart';
 import 'package:venera/utils/auth_storage.dart';
+import 'package:venera/utils/data.dart';
 import 'package:venera/utils/handle_text_share.dart';
 import 'package:venera/utils/opencc.dart';
 import 'package:venera/utils/tags_translation.dart';
@@ -83,6 +84,16 @@ Future<void> init() async {
   }
   CacheManager().setLimitSize(appdata.settings['cacheSize']);
   _checkOldConfigs();
+  // Cold-start only: init() runs once per process, not on app resume.
+  if (appdata.settings['autoExportOnLaunch'] == true) {
+    unawaited(() async {
+      try {
+        await autoExportAppDataOnLaunch();
+      } catch (e, s) {
+        Log.error("Auto Export", "$e\n$s");
+      }
+    }());
+  }
   if (App.isAndroid) {
     handleTextShare();
     try {

@@ -264,6 +264,8 @@ class Settings with ChangeNotifier {
     'backupWebdav': [], // empty means not configured
     'backupWebdavPath': '/venera_backup/',
     'backupWebdavSyncEnabled': false,
+    // Export app data to Documents on every cold start.
+    'autoExportOnLaunch': false,
     "disableSyncFields": "", // TODO: remove, UI entry has been deleted
     'dataVersion': 0,
     'lastSyncTime': 0,
