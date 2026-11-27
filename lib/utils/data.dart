@@ -128,14 +128,15 @@ Future<void> autoExportAppDataOnLaunch() async {
   await dir.create(recursive: true);
 
   final export = await exportAppData(false);
+  final stamp = _backupTimestamp(DateTime.now());
+  final target = File(FilePath.join(dir.path, 'data_$stamp.venera'));
+  final temp = File('${target.path}.tmp');
   try {
-    final stamp = _backupTimestamp(DateTime.now());
-    final target = File(FilePath.join(dir.path, 'data_$stamp.venera'));
-    final temp = File('${target.path}.tmp');
     await export.copy(temp.path);
     await target.deleteIgnoreError();
     await temp.rename(target.path);
   } finally {
+    await temp.deleteIgnoreError();
     await export.deleteIgnoreError();
   }
   await pruneAutoExportBackups(dir);
