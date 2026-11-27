@@ -62,6 +62,20 @@ void main() {
     expect(File('${target.path}.tmp').existsSync(), isFalse);
   });
 
+  test('saveAutoExportArchive overwrites an existing archive', () async {
+    final dir = Directory.systemTemp.createTempSync('venera_auto_export');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final time = DateTime(2026, 3, 1, 5, 4, 3);
+    final target = File('${dir.path}/data_20260301_050403.venera')
+      ..writeAsStringSync('old');
+    final source = File('${dir.path}/source.venera')..writeAsStringSync('new');
+
+    await saveAutoExportArchive(source, dir, time);
+
+    expect(target.readAsStringSync(), 'new');
+    expect(File('${target.path}.tmp').existsSync(), isFalse);
+  });
+
   test('saveAutoExportArchive removes temp file when copy fails', () async {
     final dir = Directory.systemTemp.createTempSync('venera_auto_export');
     addTearDown(() => dir.deleteSync(recursive: true));

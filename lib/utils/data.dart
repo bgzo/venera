@@ -164,8 +164,13 @@ Future<void> saveAutoExportArchive(
   final temp = File('${target.path}.tmp');
   try {
     await source.copy(temp.path);
-    await target.deleteIgnoreError();
-    await temp.rename(target.path);
+    try {
+      await temp.rename(target.path);
+    } on FileSystemException {
+      // Windows cannot rename over an existing file.
+      await target.deleteIgnoreError();
+      await temp.rename(target.path);
+    }
   } finally {
     await temp.deleteIgnoreError();
   }
