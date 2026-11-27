@@ -76,21 +76,21 @@ Future<File> exportAppData([bool sync = false]) async {
   // The token and the comic-to-subject links live outside appdata.json, so
   // they need their own entries in the archive.
   var bangumiFile = File(FilePath.join(tempDir.path, '$stamp.bangumi.json'));
-  await bangumiFile.writeAsString(
-    jsonEncode({
-      'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
-    }),
-  );
   var bangumiTokenPath = bangumiFile.path;
   // The startup WebDAV pull can rewrite appdata.json, so snapshot it from
   // memory instead of zipping a file that may be half-written.
   final appdataPath = sync
       ? FilePath.join(dataPath, "syncdata.json")
       : FilePath.join(tempDir.path, '$stamp.appdata.json');
-  if (!sync) {
-    await File(appdataPath).writeAsString(jsonEncode(appdata.toJson()));
-  }
   try {
+    await bangumiFile.writeAsString(
+      jsonEncode({
+        'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
+      }),
+    );
+    if (!sync) {
+      await File(appdataPath).writeAsString(jsonEncode(appdata.toJson()));
+    }
     await Isolate.run(() {
       // Flush WAL data into main .db files before copying. This runs in the
       // isolate so a busy database cannot block the UI isolate.
