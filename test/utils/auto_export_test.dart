@@ -18,6 +18,9 @@ void main() {
       file.setLastModifiedSync(base.add(Duration(hours: 11 - i)));
     }
     File('${dir.path}/notes.txt').writeAsStringSync('keep me');
+    File(
+      '${dir.path}/data_20260110_000000.venera.tmp',
+    ).writeAsStringSync('partial');
 
     await pruneAutoExportBackups(dir);
 
@@ -28,6 +31,7 @@ void main() {
         .toSet();
     expect(names.length, 11);
     expect(names, contains('notes.txt'));
+    expect(names, isNot(contains('data_20260110_000000.venera.tmp')));
     expect(names, isNot(contains('data_20260101_000000.venera')));
     expect(names, isNot(contains('data_20260102_000000.venera')));
     expect(names, contains('data_20260111_000000.venera'));
