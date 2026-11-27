@@ -49,13 +49,6 @@ void _cleanWalFiles(String dbPath) {
 Future<File> exportAppData([bool sync = false]) async {
   var dataPath = App.dataPath;
 
-  // Flush WAL data into main .db files before copying
-  _flushDb(FilePath.join(dataPath, "history.db"));
-  _flushDb(FilePath.join(dataPath, "local_favorite.db"));
-  _flushDb(FilePath.join(dataPath, "read_later.db"));
-  _flushDb(FilePath.join(dataPath, "cookie.db"));
-  _flushDb(FilePath.join(dataPath, "bangumi.db"));
-
   // Unique per call so a concurrent manual export cannot delete this archive
   // while the zip isolate is still writing it.
   final stamp = DateTime.now().microsecondsSinceEpoch;
@@ -72,6 +65,17 @@ Future<File> exportAppData([bool sync = false]) async {
   var bangumiTokenPath = bangumiFile.path;
   try {
     await Isolate.run(() {
+      // Flush WAL data into main .db files before copying. This runs in the
+      // isolate so a busy database cannot block the UI isolate.
+      for (var name in const [
+        "history.db",
+        "local_favorite.db",
+        "read_later.db",
+        "cookie.db",
+        "bangumi.db",
+      ]) {
+        _flushDb(FilePath.join(dataPath, name));
+      }
       var zipFile = ZipFile.open(cacheFilePath);
       var historyFile = FilePath.join(dataPath, "history.db");
       var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
