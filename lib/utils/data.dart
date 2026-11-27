@@ -102,6 +102,10 @@ Future<File> exportAppData([bool sync = false]) async {
       }
       zipFile.close();
     });
+  } catch (_) {
+    // The zip isolate may have created a partial archive before failing.
+    await cacheFile.deleteIgnoreError();
+    rethrow;
   } finally {
     bangumiFile.deleteIgnoreError();
   }
