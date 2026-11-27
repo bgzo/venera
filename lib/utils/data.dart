@@ -123,15 +123,15 @@ const autoExportKeepCount = 10;
 /// iOS already exposes `Documents` as `On My iPhone > Venera`; other platforms
 /// use a `Venera/Backups` folder under Documents.
 Future<void> autoExportAppDataOnLaunch() async {
-  // Save pending settings before reading appdata.json; skip the WebDAV push.
-  await appdata.saveData(false);
-
   final documents = await getApplicationDocumentsDirectory();
   final root = App.isIOS
       ? documents.path
       : FilePath.join(documents.path, 'Venera');
   final dir = Directory(FilePath.join(root, 'Backups'));
   await dir.create(recursive: true);
+
+  // Save pending settings before reading appdata.json; skip the WebDAV push.
+  await appdata.saveData(false);
 
   final export = await exportAppData(false);
   final stamp = autoExportTimestamp(DateTime.now());
