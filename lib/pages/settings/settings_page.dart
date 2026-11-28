@@ -75,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
     "APP",
     "Network",
     "Bangumi",
-    "超分",
+    "Super Resolution",
     "About",
     "Debug",
   ];

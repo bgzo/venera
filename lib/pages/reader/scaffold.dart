@@ -195,18 +195,20 @@ class _ReaderScaffoldState extends State<_ReaderScaffold> {
   String get anime4KButtonTooltip {
     final status = anime4KPageStatus;
     if (!status.hasImages) {
-      return '当前页无图片';
+      return 'No images on this page'.tl;
     }
     if (canSwitchToOriginal) {
-      return '切换到原图';
+      return 'Switch to Original'.tl;
     }
     if (canSwitchToSuperResolution) {
-      return hasAnime4KResultOnPage ? '切换到超分' : '显示超分';
+      return hasAnime4KResultOnPage
+          ? 'Switch to Super Resolution'.tl
+          : 'Show Super Resolution'.tl;
     }
     if (status.isProcessing) {
-      return '超分处理中';
+      return 'Super Resolution in progress'.tl;
     }
-    return '等待超分完成';
+    return 'Waiting for Super Resolution to finish'.tl;
   }
 
   IconData get anime4KButtonIcon {
