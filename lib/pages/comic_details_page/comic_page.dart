@@ -89,6 +89,7 @@ class _ComicPageState extends LoadingState<ComicPage, ComicDetails>
 
   @override
   void onReadEnd() {
+    if (!mounted) return;
     // The reader mutates its own History instance, so re-read the latest
     // progress instead of keeping the one loaded when this page opened.
     history = HistoryManager().find(widget.id, comic.comicType) ?? history;
