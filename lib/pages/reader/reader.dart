@@ -482,7 +482,7 @@ class _ReaderState extends State<Reader>
     if (history == null || (history.ep <= 0 && history.page <= 0)) {
       return;
     }
-    HistoryManager().addHistory(history);
+    _writeHistory(history);
     final pending = _pendingHistoryWrite;
     if (pending != null) {
       unawaited(_rewriteHistoryAfter(pending, history));
@@ -500,6 +500,10 @@ class _ReaderState extends State<Reader>
     } catch (_) {
       // The final write below is still worth attempting.
     }
+    _writeHistory(history);
+  }
+
+  void _writeHistory(History history) {
     try {
       HistoryManager().addHistory(history);
     } catch (e, s) {
