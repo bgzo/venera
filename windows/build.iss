@@ -3,7 +3,7 @@
 
 #define MyAppName "Venera"
 #define MyAppVersion "{{version}}"
-#define MyAppPublisher "io.github.haukuen"
+#define MyAppPublisher "cc.bgzo"
 #define MyAppExeName "venera.exe"
 #define RootPath "{{root_path}}"
 

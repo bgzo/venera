@@ -31,7 +31,7 @@ keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 def resolvedKeystoreFile = rootProject.file(keystoreProperties['storeFile'])
 
 android {
-    namespace = "io.github.haukuen.venera"
+    namespace = "cc.bgzo.venera"
     compileSdk = flutter.compileSdkVersion
     ndkVersion "28.0.13004108"
 
@@ -74,7 +74,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.haukuen.venera"
+        applicationId = "cc.bgzo.venera"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk = flutter.minSdkVersion

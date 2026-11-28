@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Venera: a Flutter comic reader (desktop + mobile), a personal fork of `venera-app/venera`. Push to `origin` (`bgzo-sandbox/venera`) on branch `main`; upstream is `haukuen/venera` (rebased/merged with local changes).
+Venera: a Flutter comic reader (desktop + mobile), a personal fork of `venera-app/venera`. Push to `origin` (`bgzo/venera`) on branch `main`; upstream is `haukuen/venera` (rebased/merged with local changes).
 
 ## Toolchain
 

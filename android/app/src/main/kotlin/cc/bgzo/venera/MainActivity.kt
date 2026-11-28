@@ -1,4 +1,4 @@
-package io.github.haukuen.venera
+package cc.bgzo.venera
 
 import android.Manifest
 import android.app.Activity

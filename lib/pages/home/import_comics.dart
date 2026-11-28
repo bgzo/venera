@@ -128,7 +128,7 @@ class _ImportComicsWidgetState extends State<_ImportComicsWidget> {
           ),
           onPressed: () {
             launchUrlString(
-              "https://github.com/haukuen/venera/blob/main/doc/import_comic.md",
+              "https://github.com/bgzo/venera/blob/main/doc/import_comic.md",
             );
           },
         ).fixWidth(90).paddingRight(8),

@@ -66,7 +66,7 @@ class _AboutSettingsState extends State<AboutSettings> {
           title: Text("Source Code".tl),
           trailing: const Icon(Icons.open_in_new),
           onTap: () {
-            launchUrlString("https://github.com/haukuen/venera");
+            launchUrlString("https://github.com/bgzo/venera");
           },
         ).toSliver(),
       ],
@@ -76,7 +76,7 @@ class _AboutSettingsState extends State<AboutSettings> {
 
 Future<bool> checkUpdate() async {
   var res = await AppDio().get(
-    "https://raw.githubusercontent.com/haukuen/venera/main/pubspec.yaml",
+    "https://raw.githubusercontent.com/bgzo/venera/main/pubspec.yaml",
   );
   if (res.statusCode == 200) {
     var data = loadYaml(res.data);
@@ -111,7 +111,7 @@ Future<void> checkUpdateUi([
               Button.text(
                 onPressed: () {
                   Navigator.pop(context);
-                  launchUrlString("https://github.com/haukuen/venera/releases");
+                  launchUrlString("https://github.com/bgzo/venera/releases");
                 },
                 child: Text("Update".tl),
               ),
