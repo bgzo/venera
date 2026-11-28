@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:venera/foundation/app.dart';
 import 'package:venera/foundation/appdata.dart';
@@ -43,69 +44,204 @@ void _cleanWalFiles(String dbPath) {
   }
 }
 
+/// Remove export temp files left by a killed process.
+///
+/// Recent files are kept in case a concurrent export is still writing them.
+Future<void> pruneExportTempFiles(Directory dir) async {
+  final cutoff = DateTime.now().subtract(const Duration(days: 1));
+  for (final file in dir.listSync().whereType<File>()) {
+    if (file.lastModifiedSync().isBefore(cutoff)) {
+      await file.deleteIgnoreError();
+    }
+  }
+}
+
 /// [sync] selects the WebDAV-shaped `syncdata.json`; the Bangumi token is only
 /// archived for a full local backup so it never leaves the device via sync.
 Future<File> exportAppData([bool sync = false]) async {
   var dataPath = App.dataPath;
 
-  // Flush WAL data into main .db files before copying
-  _flushDb(FilePath.join(dataPath, "history.db"));
-  _flushDb(FilePath.join(dataPath, "local_favorite.db"));
-  _flushDb(FilePath.join(dataPath, "read_later.db"));
-  _flushDb(FilePath.join(dataPath, "cookie.db"));
-  _flushDb(FilePath.join(dataPath, "bangumi.db"));
+  // Build the zip outside the cache directory: CacheManager scans and deletes
+  // unmanaged cache files at startup and on cache clear, which could remove an
+  // archive that is still being written.
+  var tempDir = Directory(FilePath.join(dataPath, 'export_temp'));
+  await tempDir.create(recursive: true);
+  await pruneExportTempFiles(tempDir);
 
-  var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  var cacheFilePath = FilePath.join(App.cachePath, '$time.venera');
+  // Unique per call so a concurrent manual export cannot delete this archive
+  // while the zip isolate is still writing it.
+  final stamp = DateTime.now().microsecondsSinceEpoch;
+  var cacheFilePath = FilePath.join(tempDir.path, '$stamp.venera');
   var cacheFile = File(cacheFilePath);
-  if (await cacheFile.exists()) {
-    await cacheFile.delete();
-  }
   // The token and the comic-to-subject links live outside appdata.json, so
   // they need their own entries in the archive.
-  var bangumiFile = File(FilePath.join(App.cachePath, '$time.bangumi.json'));
-  await bangumiFile.writeAsString(
-    jsonEncode({
-      'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
-    }),
-  );
+  var bangumiFile = File(FilePath.join(tempDir.path, '$stamp.bangumi.json'));
   var bangumiTokenPath = bangumiFile.path;
+  // The startup WebDAV pull can rewrite appdata.json, so snapshot it from
+  // memory instead of zipping a file that may be half-written.
+  final appdataPath = sync
+      ? FilePath.join(dataPath, "syncdata.json")
+      : FilePath.join(tempDir.path, '$stamp.appdata.json');
   try {
+    await bangumiFile.writeAsString(
+      jsonEncode({
+        'token': (appdata.implicitData['bangumiToken'] as String?) ?? '',
+      }),
+    );
+    if (!sync) {
+      await File(appdataPath).writeAsString(jsonEncode(appdata.toJson()));
+    }
     await Isolate.run(() {
+      // Flush WAL data into main .db files before copying. This runs in the
+      // isolate so a busy database cannot block the UI isolate.
+      for (var name in const [
+        "history.db",
+        "local_favorite.db",
+        "read_later.db",
+        "cookie.db",
+        "bangumi.db",
+      ]) {
+        _flushDb(FilePath.join(dataPath, name));
+      }
       var zipFile = ZipFile.open(cacheFilePath);
-      var historyFile = FilePath.join(dataPath, "history.db");
-      var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
-      var appdata = FilePath.join(
-        dataPath,
-        sync ? "syncdata.json" : "appdata.json",
-      );
-      var cookies = FilePath.join(dataPath, "cookie.db");
-      zipFile.addFile("history.db", historyFile);
-      zipFile.addFile("local_favorite.db", localFavoriteFile);
-      zipFile.addFile("appdata.json", appdata);
-      zipFile.addFile("cookie.db", cookies);
-      var readLaterFile = FilePath.join(dataPath, "read_later.db");
-      zipFile.addFile("read_later.db", readLaterFile);
-      var bangumiDb = FilePath.join(dataPath, "bangumi.db");
-      if (File(bangumiDb).existsSync()) {
-        zipFile.addFile("bangumi.db", bangumiDb);
-      }
-      if (!sync) {
-        zipFile.addFile("bangumi.json", bangumiTokenPath);
-      }
-      for (var file in Directory(
-        FilePath.join(dataPath, "comic_source"),
-      ).listSync()) {
-        if (file is File) {
-          zipFile.addFile("comic_source/${file.name}", file.path);
+      try {
+        var historyFile = FilePath.join(dataPath, "history.db");
+        var localFavoriteFile = FilePath.join(dataPath, "local_favorite.db");
+        var appdata = appdataPath;
+        var cookies = FilePath.join(dataPath, "cookie.db");
+        zipFile.addFile("history.db", historyFile);
+        zipFile.addFile("local_favorite.db", localFavoriteFile);
+        zipFile.addFile("appdata.json", appdata);
+        zipFile.addFile("cookie.db", cookies);
+        var readLaterFile = FilePath.join(dataPath, "read_later.db");
+        zipFile.addFile("read_later.db", readLaterFile);
+        var bangumiDb = FilePath.join(dataPath, "bangumi.db");
+        if (File(bangumiDb).existsSync()) {
+          zipFile.addFile("bangumi.db", bangumiDb);
         }
+        if (!sync) {
+          zipFile.addFile("bangumi.json", bangumiTokenPath);
+        }
+        for (var file in Directory(
+          FilePath.join(dataPath, "comic_source"),
+        ).listSync()) {
+          if (file is File) {
+            zipFile.addFile("comic_source/${file.name}", file.path);
+          }
+        }
+      } finally {
+        // Release the native handle so the partial archive can be deleted.
+        zipFile.close();
       }
-      zipFile.close();
     });
+  } catch (_) {
+    // The zip isolate may have created a partial archive before failing.
+    await cacheFile.deleteIgnoreError();
+    rethrow;
   } finally {
     bangumiFile.deleteIgnoreError();
+    if (!sync) File(appdataPath).deleteIgnoreError();
   }
   return cacheFile;
+}
+
+/// Number of automatic launch backups kept in the export folder.
+const autoExportKeepCount = 10;
+
+/// Export app data into a user-visible folder on every cold start.
+///
+/// Runs alongside the WebDAV initial pull, so this snapshot may contain the
+/// settings from before that pull completes.
+///
+/// iOS already exposes `Documents` as `On My iPhone > Venera`; other platforms
+/// use a `Venera/Backups` folder under Documents.
+Future<void> autoExportAppDataOnLaunch() async {
+  final documents = await getApplicationDocumentsDirectory();
+  final root = App.isIOS
+      ? documents.path
+      : FilePath.join(documents.path, 'Venera');
+  final dir = Directory(FilePath.join(root, 'Backups'));
+  await dir.create(recursive: true);
+
+  // Save pending settings before reading appdata.json; skip the WebDAV push.
+  await appdata.saveData(false);
+
+  await autoExportInto(dir, () => exportAppData(false));
+}
+
+/// Copy the archive produced by [export] into [dir], then prune old backups.
+///
+/// The source archive is deleted whether the copy succeeds or not; pruning
+/// only runs after a successful copy.
+Future<void> autoExportInto(
+  Directory dir,
+  Future<File> Function() export,
+) async {
+  final archive = await export();
+  try {
+    await saveAutoExportArchive(archive, dir, DateTime.now());
+  } finally {
+    await archive.deleteIgnoreError();
+  }
+  await pruneAutoExportBackups(dir);
+}
+
+/// Copy [source] into [dir] as a timestamped archive via a temp file.
+Future<void> saveAutoExportArchive(
+  File source,
+  Directory dir,
+  DateTime time,
+) async {
+  final target = File(
+    FilePath.join(dir.path, 'data_${autoExportTimestamp(time)}.venera'),
+  );
+  final temp = File('${target.path}.tmp');
+  try {
+    await source.copy(temp.path);
+    try {
+      await temp.rename(target.path);
+    } on FileSystemException {
+      // Windows cannot rename over an existing file.
+      await target.deleteIgnoreError();
+      await temp.rename(target.path);
+    }
+  } finally {
+    await temp.deleteIgnoreError();
+  }
+}
+
+/// Keep the newest [autoExportKeepCount] `data_*.venera` files in [dir].
+///
+/// Stale `data_*.venera.tmp` files from interrupted runs are removed as well.
+/// Ordering uses the timestamp in the file name, not the file mtime: copied
+/// or restored files get a fresh mtime that no longer matches their backup
+/// time, which would otherwise make pruning delete the wrong files.
+Future<void> pruneAutoExportBackups(Directory dir) async {
+  final files = <File>[];
+  for (final file in dir.listSync().whereType<File>()) {
+    if (!file.name.startsWith('data_')) continue;
+    if (file.name.endsWith('.venera.tmp')) {
+      // Leftover from a run killed between copy and rename.
+      await file.deleteIgnoreError();
+    } else if (file.name.endsWith('.venera')) {
+      files.add(file);
+    }
+  }
+  files.sort((a, b) => a.name.compareTo(b.name));
+  if (files.length <= autoExportKeepCount) return;
+  for (final file in files.take(files.length - autoExportKeepCount)) {
+    await file.deleteIgnoreError();
+  }
+}
+
+/// Timestamp used in auto export file names, in sortable local time.
+///
+/// shortcut: a DST fall-back hour can repeat a name and overwrite one backup,
+/// switch to UTC if that matters.
+String autoExportTimestamp(DateTime time) {
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${time.year}${two(time.month)}${two(time.day)}_'
+      '${two(time.hour)}${two(time.minute)}${two(time.second)}';
 }
 
 Future<void> importAppData(

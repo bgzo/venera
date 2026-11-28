@@ -18,6 +18,7 @@ import 'package:venera/pages/settings/settings_page.dart';
 import 'package:venera/super_resolution/super_resolution_service.dart';
 import 'package:venera/utils/app_links.dart';
 import 'package:venera/utils/auth_storage.dart';
+import 'package:venera/utils/data.dart';
 import 'package:venera/utils/handle_text_share.dart';
 import 'package:venera/utils/opencc.dart';
 import 'package:venera/utils/tags_translation.dart';
@@ -37,7 +38,7 @@ extension _FutureInit<T> on Future<T> {
   }
 }
 
-Future<void> init() async {
+Future<void> init({bool autoExport = true}) async {
   await App.init().wait();
   BangumiManager().onAutoSynced = (link, ep) {
     final context = App.rootNavigatorKey.currentContext;
@@ -83,6 +84,16 @@ Future<void> init() async {
   }
   CacheManager().setLimitSize(appdata.settings['cacheSize']);
   _checkOldConfigs();
+  // GUI cold start only: headless CLI calls init() too, and must not back up.
+  if (autoExport && appdata.settings['autoExportOnLaunch'] == true) {
+    unawaited(() async {
+      try {
+        await autoExportAppDataOnLaunch();
+      } catch (e, s) {
+        Log.error("Auto Export", "$e\n$s");
+      }
+    }());
+  }
   if (App.isAndroid) {
     handleTextShare();
     try {

@@ -33,7 +33,7 @@ Future<void> runHeadlessMode(List<String> args) async {
   }
 
   // Need to initialize the app for some features to work
-  await init();
+  await init(autoExport: false);
 
   var command = args[commandIndex];
   var subCommand = (commandIndex + 1 < args.length)

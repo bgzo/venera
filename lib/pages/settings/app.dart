@@ -179,11 +179,33 @@ class _AppSettingsState extends State<AppSettings> {
           title: "Export App Data".tl,
           callback: () async {
             var controller = showLoadingDialog(context);
-            var file = await exportAppData(false);
-            await saveFile(filename: "data.venera", file: file);
-            controller.close();
+            try {
+              var file = await exportAppData(false);
+              try {
+                await saveFile(filename: "data.venera", file: file);
+              } finally {
+                await file.deleteIgnoreError();
+              }
+            } catch (e, s) {
+              Log.error("Export data", e.toString(), s);
+              if (!context.mounted) return;
+              context.showMessage(
+                message: "Export failed: @errors".tlParams({'errors': e}),
+              );
+            } finally {
+              controller.close();
+            }
           },
           actionTitle: 'Export'.tl,
+        ).toSliver(),
+        _SwitchSetting(
+          title: "Auto Export".tl,
+          settingKey: "autoExportOnLaunch",
+          subtitle: App.isAndroid
+              ? "On Android, backups stay in the app-private Documents folder and are removed with the app. Includes login cookies and tokens."
+                    .tl
+              : "Cold-start backup to Venera/Backups; keeps the newest @n. Includes login cookies and tokens."
+                    .tlParams({'n': autoExportKeepCount}),
         ).toSliver(),
         SelectSetting(
           title: "Chapter Export Naming Format".tl,
