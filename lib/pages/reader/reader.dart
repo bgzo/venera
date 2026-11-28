@@ -325,22 +325,29 @@ class _ReaderState extends State<Reader>
   @override
   Widget build(BuildContext context) {
     _checkImagesPerPageChange();
-    return KeyboardListener(
-      focusNode: focusNode,
-      autofocus: true,
-      onKeyEvent: onKeyEvent,
-      child: Overlay(
-        initialEntries: [
-          OverlayEntry(
-            builder: (context) {
-              return _ReaderScaffold(
-                child: _ReaderGestureDetector(
-                  child: _ReaderImages(key: Key(chapter.toString())),
-                ),
-              );
-            },
-          ),
-        ],
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          _flushHistory();
+        }
+      },
+      child: KeyboardListener(
+        focusNode: focusNode,
+        autofocus: true,
+        onKeyEvent: onKeyEvent,
+        child: Overlay(
+          initialEntries: [
+            OverlayEntry(
+              builder: (context) {
+                return _ReaderScaffold(
+                  child: _ReaderGestureDetector(
+                    child: _ReaderImages(key: Key(chapter.toString())),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -455,6 +462,18 @@ class _ReaderState extends State<Reader>
         HistoryManager().addHistoryAsync(history!);
         _updateHistoryTimer = null;
       });
+    }
+  }
+
+  /// Flush the debounced save when the reader is popped. `dispose` runs after
+  /// the route's popped future completes, so flushing there would be too late
+  /// for callers that refresh their progress in that callback.
+  void _flushHistory() {
+    _updateHistoryTimer?.cancel();
+    _updateHistoryTimer = null;
+    final history = this.history;
+    if (history != null) {
+      HistoryManager().addHistory(history);
     }
   }
 
