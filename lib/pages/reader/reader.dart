@@ -472,9 +472,12 @@ class _ReaderState extends State<Reader>
     _updateHistoryTimer?.cancel();
     _updateHistoryTimer = null;
     final history = this.history;
-    if (history != null) {
-      HistoryManager().addHistory(history);
+    // A placeholder history from a comic that was never read must not create
+    // a 0-chapter, 0-page entry in recent history.
+    if (history == null || (history.ep <= 0 && history.page <= 0)) {
+      return;
     }
+    HistoryManager().addHistory(history);
   }
 
   bool get isFirstChapterOfGroup {
