@@ -71,6 +71,13 @@ void main() {
       'Show Super Resolution',
       'Super Resolution in progress',
       'Waiting for Super Resolution to finish',
+      'The current upscaling algorithm is Anime4K, tuned for line art, manga and comic edge enhancement. For images that are already blurry or heavily compressed, the improvement is usually limited.',
+      'When enabled, the reader upscales pages in the background.',
+      'Also upscale when reading online. Images are replaced once processed, which adds latency and memory usage.',
+      'Recommended: 1.5 - 2.0. The higher the factor, the sharper the edges, but processing time and memory usage rise noticeably.',
+      'Recommended: 0.2 - 0.4. Higher values make black lines sharper; too high may look harsh, cause jaggies, or lose detail.',
+      'Recommended: 0.8 - 1.2. Enhances edge transitions; too high may make noise and compression artifacts more obvious.',
+      'Start with scale factor 2.0, then fine-tune "Line Refinement Strength" and "Edge Refinement Strength". Anime4K focuses on edge enhancement and cannot turn a low-quality compressed image back into a high-resolution original.',
     ];
     for (final locale in ['zh_CN', 'zh_TW']) {
       final map = translations[locale]!;
