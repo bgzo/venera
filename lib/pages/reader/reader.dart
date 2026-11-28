@@ -423,6 +423,11 @@ class _ReaderState extends State<Reader>
   /// `HistoryManager().addHistoryAsync` is a high-cost operation because it creates a new isolate.
   Timer? _updateHistoryTimer;
 
+  /// The last async write started by the debounce timer. It may still be
+  /// running when the reader is popped and can overwrite the final state with
+  /// an older snapshot.
+  Future<void>? _pendingHistoryWrite;
+
   void updateHistory() {
     if (history != null) {
       // page >= maxPage handles both last image page and chapter comments page
@@ -459,8 +464,8 @@ class _ReaderState extends State<Reader>
       history!.time = DateTime.now();
       _updateHistoryTimer?.cancel();
       _updateHistoryTimer = Timer(const Duration(seconds: 1), () {
-        HistoryManager().addHistoryAsync(history!);
         _updateHistoryTimer = null;
+        _pendingHistoryWrite = HistoryManager().addHistoryAsync(history!);
       });
     }
   }
@@ -478,6 +483,28 @@ class _ReaderState extends State<Reader>
       return;
     }
     HistoryManager().addHistory(history);
+    final pending = _pendingHistoryWrite;
+    if (pending != null) {
+      unawaited(_rewriteHistoryAfter(pending, history));
+    }
+  }
+
+  /// The in-flight isolate captured the position before the latest page turn,
+  /// so write the final state again after it lands.
+  Future<void> _rewriteHistoryAfter(
+    Future<void> pending,
+    History history,
+  ) async {
+    try {
+      await pending;
+    } catch (_) {
+      // The final write below is still worth attempting.
+    }
+    try {
+      HistoryManager().addHistory(history);
+    } catch (e, s) {
+      Log.error("Reader", "Failed to persist final reading progress: $e\n$s");
+    }
   }
 
   bool get isFirstChapterOfGroup {
