@@ -58,6 +58,19 @@ void main() {
       'Confirm',
       'Export logs',
       'Error',
+      'Super Resolution',
+      'How it works',
+      'Network Images',
+      'Scale Factor',
+      'Line Refinement Strength',
+      'Edge Refinement Strength',
+      'Tuning Tips',
+      'No images on this page',
+      'Switch to Original',
+      'Switch to Super Resolution',
+      'Show Super Resolution',
+      'Super Resolution in progress',
+      'Waiting for Super Resolution to finish',
     ];
     for (final locale in ['zh_CN', 'zh_TW']) {
       final map = translations[locale]!;
